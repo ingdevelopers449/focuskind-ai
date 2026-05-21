@@ -47,7 +47,6 @@ export default function SuperAdminDashboard({
   const [loading, setLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<"all" | "activo" | "vencido" | "mora">("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showDemoData, setShowDemoData] = useState(false); // Default to false: absolutely NO fictitious data by default
   const [schemaErrorMsg, setSchemaErrorMsg] = useState("");
   
   // Custom delete confirmation dialog states
@@ -169,8 +168,8 @@ export default function SuperAdminDashboard({
       }
 
 
-      // Merge and set
-      setMembers(showDemoData ? [...fetched, ...baseMocks] : fetched);
+      // Set real members list
+      setMembers(fetched);
     } catch (err) {
       console.error("Failed to load SuperAdmin members list:", err);
     } finally {
@@ -596,18 +595,6 @@ export default function SuperAdminDashboard({
             <div className="text-left space-y-2">
               <h3 className="font-black text-lg text-white">Directorio de Cuentas Familiares</h3>
               <p className="text-slate-400 text-xs font-semibold font-mono text-indigo-300/80">Sincroniza y gestiona las cuentas reales registradas en Supabase.</p>
-              
-              {/* Toggle switch to satisfy: "no quiero dactos fictucios" */}
-              <div className="flex items-center gap-2 bg-slate-900 border border-slate-800/80 px-3 py-1.5 rounded-xl text-[11px] font-bold text-slate-300 w-full xl:w-fit cursor-pointer select-none" onClick={() => setShowDemoData(!showDemoData)}>
-                <span className="text-indigo-200 text-[11px]">¿Mostrar datos ficticios/demo?</span>
-                <button
-                  type="button"
-                  className={`w-8 h-4 rounded-full flex items-center p-0.5 transition-colors duration-200 outline-none ${showDemoData ? "bg-indigo-600 justify-end" : "bg-slate-700 justify-start"}`}
-                >
-                  <span className="w-3 h-3 rounded-full bg-white shadow-sm" />
-                </button>
-                <span className="text-xs uppercase text-slate-400 font-extrabold">{showDemoData ? "Sí" : "No (Solo Reales)"}</span>
-              </div>
             </div>
             
             {/* Search Input bar */}
