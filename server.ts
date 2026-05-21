@@ -80,16 +80,86 @@ Guías adicionales:
 7. Mantén un formato visual súper limpio con saltos de línea y emojis vibrantes. No uses términos técnicos complejos sin explicarlos antes mágicamente como "poderes especiales".
 8. Toda la conversación debe ser en idioma Español.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: message,
-      config: {
-        systemInstruction,
-        temperature: 0.8,
-      },
-    });
+    let botReply = "";
+    const provider = (process.env.AI_PROVIDER || "gemini").toLowerCase();
 
-    const botReply = response.text || "¡Ups! Foli se ha distraído un momento viendo una mariposa. ¿Podrías preguntarme otra vez?";
+    if (provider === "ollama") {
+      const host = process.env.OLLAMA_HOST || "http://localhost:11434";
+      const model = process.env.OLLAMA_MODEL || "llama3";
+      
+      console.log(`Calling local Ollama (${model}) at ${host}...`);
+      const response = await fetch(`${host}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemInstruction },
+            { role: "user", content: message }
+          ],
+          options: {
+            temperature: 0.8,
+          },
+          stream: false,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Ollama API responded with status ${response.status}: ${errText}`);
+      }
+
+      const data: any = await response.json();
+      botReply = data.message?.content || "";
+    } else if (provider === "groq") {
+      const apiKey = process.env.GROQ_API_KEY;
+      if (!apiKey) {
+        throw new Error("GROQ_API_KEY no está configurada en tu archivo .env. Por favor créala en console.groq.com y agrégala.");
+      }
+      const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+      
+      console.log(`Calling Groq Cloud (${model})...`);
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemInstruction },
+            { role: "user", content: message }
+          ],
+          temperature: 0.8,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Groq API responded with status ${response.status}: ${errText}`);
+      }
+
+      const data: any = await response.json();
+      botReply = data.choices?.[0]?.message?.content || "";
+    } else {
+      // Default to Gemini
+      console.log("Calling Google Gemini AI (gemini-3.5-flash)...");
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: message,
+        config: {
+          systemInstruction,
+          temperature: 0.8,
+        },
+      });
+      botReply = response.text || "";
+    }
+
+    if (!botReply) {
+      botReply = "¡Ups! Foli se ha distraído un momento viendo una mariposa. ¿Podrías preguntarme otra vez?";
+    }
+
     
     // Simple extraction of the 3 questions if present
     const questions: string[] = [];
