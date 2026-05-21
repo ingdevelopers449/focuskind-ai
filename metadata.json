@@ -1,0 +1,8 @@
+{
+  "name": "FocusKid AI",
+  "description": "Un micro-SaaS educativo impulsado por IA generativa, enfocado en ayudar a niños a mejorar su concentración, comprensión académica y hábitos de estudio mediante acompañamiento personalizado.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
