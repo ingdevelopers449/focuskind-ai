@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import { GoogleGenAI } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 
@@ -11,15 +10,6 @@ const PORT = 3000;
 
 app.use(express.json());
 
-// Initialize Google GenAI
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      "User-Agent": "aistudio-build",
-    },
-  },
-});
 
 // API Routes
 app.post("/api/tutor", async (req, res) => {
@@ -81,7 +71,7 @@ Guías adicionales:
 8. Toda la conversación debe ser en idioma Español.`;
 
     let botReply = "";
-    const provider = (process.env.AI_PROVIDER || "gemini").toLowerCase();
+    const provider = (process.env.AI_PROVIDER || "groq").toLowerCase();
 
     if (provider === "ollama") {
       const host = process.env.OLLAMA_HOST || "http://localhost:11434";
@@ -111,14 +101,15 @@ Guías adicionales:
 
       const data: any = await response.json();
       botReply = data.message?.content || "";
-    } else if (provider === "groq") {
+    } else {
+      // Default to Groq Cloud (Llama)
       const apiKey = process.env.GROQ_API_KEY;
       if (!apiKey) {
         throw new Error("GROQ_API_KEY no está configurada en tu archivo .env. Por favor créala en console.groq.com y agrégala.");
       }
       const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
       
-      console.log(`Calling Groq Cloud (${model})...`);
+      console.log(`Calling Groq Cloud Llama (${model})...`);
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -142,18 +133,6 @@ Guías adicionales:
 
       const data: any = await response.json();
       botReply = data.choices?.[0]?.message?.content || "";
-    } else {
-      // Default to Gemini
-      console.log("Calling Google Gemini AI (gemini-3.5-flash)...");
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: message,
-        config: {
-          systemInstruction,
-          temperature: 0.8,
-        },
-      });
-      botReply = response.text || "";
     }
 
     if (!botReply) {
@@ -187,14 +166,14 @@ Guías adicionales:
     let errorMessage = "Ocurrió un error al contactar al Zorrito Foli.";
     let errorDetail = error.message || String(error);
 
-    const isDepleted = errorStr.toLowerCase().includes("prepayment credits") || 
-                       errorStr.toLowerCase().includes("depleted") || 
-                       errorStr.toLowerCase().includes("resource_exhausted") || 
-                       errorStr.includes("429");
+    const isExhausted = errorStr.toLowerCase().includes("limit_exceeded") || 
+                        errorStr.toLowerCase().includes("rate limit") || 
+                        errorStr.toLowerCase().includes("resource_exhausted") || 
+                        errorStr.includes("429");
 
-    if (isDepleted) {
-      errorMessage = "⚠️ Los créditos de prepago se han agotado.";
-      errorDetail = "Tus créditos en Google AI Studio están agotados. Por favor, ingresa a https://aistudio.google.com/ para recargar saldo de prepago o configurar tu facturación.";
+    if (isExhausted) {
+      errorMessage = "⚠️ Límite de peticiones de Groq Cloud alcanzado.";
+      errorDetail = "Has alcanzado los límites de tokens o consultas en tu cuenta de Groq. Si usas la capa gratuita, espera un minuto e intenta de nuevo, o configura Ollama en local.";
     }
 
     res.status(500).json({
