@@ -377,15 +377,15 @@ export default function InteractiveTutor({
           <div className="md:col-span-9 p-4 sm:p-5 flex flex-col justify-between h-full bg-slate-50 overflow-hidden">
             
             {/* Subject horizontal select tabs */}
-            <div className="flex gap-2 overflow-x-auto pb-2 border-b border-slate-200 shrink-0">
+            <div className="flex gap-2.5 overflow-x-auto pb-3 border-b border-slate-200 shrink-0 scrollbar-none">
               {SUBJECT_METADATA.map((subject) => (
                 <button
                   key={subject.id}
                   onClick={() => setSelectedSubject(subject.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black border-2 transition-all shrink-0 ${
+                  className={`px-5 py-3 rounded-2xl text-sm sm:text-base font-black border-2 transition-all shrink-0 hover:scale-105 active:scale-95 cursor-pointer ${
                     selectedSubject === subject.id
-                      ? "bg-[#3B82F6] text-white border-[#3B82F6] shadow-[0_3px_0_#1D4ED8]"
-                      : "bg-white text-slate-700 border-slate-200 hover:border-slate-400"
+                      ? "bg-[#3B82F6] text-white border-[#1D4ED8] shadow-[0_4px_0_#1E3A8A]"
+                      : "bg-white text-slate-700 border-slate-200 hover:border-slate-400 shadow-sm hover:shadow"
                   }`}
                 >
                   {subject.label}
@@ -621,15 +621,15 @@ export default function InteractiveTutor({
         <div className="md:col-span-8 p-4 sm:p-6 flex flex-col justify-between h-[520px] bg-slate-50">
           
           {/* Subject Switchers */}
-          <div className="flex gap-2 overflow-x-auto pb-3 border-b border-slate-200">
+          <div className="flex gap-2.5 overflow-x-auto pb-3.5 border-b border-slate-200 scrollbar-none">
             {SUBJECT_METADATA.map((subject) => (
               <button
                 key={subject.id}
                 onClick={() => setSelectedSubject(subject.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-black border-2 transition-all shrink-0 ${
+                className={`px-4.5 py-2 rounded-2xl text-xs sm:text-sm font-black border-2 transition-all shrink-0 hover:scale-105 active:scale-95 cursor-pointer ${
                   selectedSubject === subject.id
-                    ? "bg-[#3B82F6] text-white border-[#3B82F6] shadow-[0_3px_0_#1D4ED8]"
-                    : "bg-white text-slate-700 border-slate-200 hover:border-slate-400"
+                    ? "bg-[#3B82F6] text-white border-[#1D4ED8] shadow-[0_3px_0_#1E3A8A]"
+                    : "bg-white text-slate-700 border-slate-200 hover:border-slate-400 shadow-sm hover:shadow"
                 }`}
               >
                 {subject.label}
