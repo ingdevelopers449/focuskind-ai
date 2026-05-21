@@ -9,24 +9,40 @@ interface HeaderProps {
   isLoggedIn: boolean;
   userEmail: string;
   onLogout: () => void;
+  activeWorkspaceTab?: "student" | "parent" | "admin";
 }
 
-export default function Header({ onOpenAuth, activeSection, onNavigate, isLoggedIn, userEmail, onLogout }: HeaderProps) {
+export default function Header({ 
+  onOpenAuth, 
+  activeSection, 
+  onNavigate, 
+  isLoggedIn, 
+  userEmail, 
+  onLogout,
+  activeWorkspaceTab = "student"
+}: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems = [
-    { label: "Inicio", id: "inicio" },
-    { label: "Características", id: "caracteristicas" },
-    { label: "Tutor Foli (Demo)", id: "demo" },
-    { label: "Test de Estudio", id: "test" },
-    { label: "Precios", id: "precios" },
-  ];
+  const isSuperAdmin = isLoggedIn && userEmail.toLowerCase() === getSuperAdminEmail();
 
-  if (isLoggedIn) {
-    // Add Parents Dashboard view to header navigation
-    if (!navItems.some(i => i.id === "dashboard")) {
-      navItems.push({ label: "Progreso Padres 📊", id: "dashboard" });
-    }
+  const navItems = [];
+  if (!isLoggedIn) {
+    navItems.push(
+      { label: "Inicio", id: "inicio" },
+      { label: "Características", id: "caracteristicas" },
+      { label: "Tutor Foli (Demo)", id: "demo" },
+      { label: "Test de Estudio", id: "test" },
+      { label: "Precios", id: "precios" }
+    );
+  } else if (isSuperAdmin) {
+    navItems.push(
+      { label: "Panel SuperAdmin 👑", id: "admin-workspace" }
+    );
+  } else {
+    navItems.push(
+      { label: "👦 Chat del Niño (Enfoque)", id: "student-workspace" },
+      { label: "📊 Control Parental (Tutor)", id: "parent-workspace" }
+    );
   }
 
   const handleNavClick = (id: string) => {
@@ -100,7 +116,10 @@ export default function Header({ onOpenAuth, activeSection, onNavigate, isLogged
               key={item.id}
               onClick={() => handleNavClick(item.id)}
               className={`text-sm font-bold px-3 py-2 rounded-xl transition-all duration-200 ${
-                activeSection === item.id
+                activeSection === item.id ||
+                (item.id === "admin-workspace" && activeWorkspaceTab === "admin") ||
+                (item.id === "student-workspace" && activeWorkspaceTab === "student") ||
+                (item.id === "parent-workspace" && activeWorkspaceTab === "parent")
                   ? "bg-[#FEF3C7] text-[#B45309] ring-2 ring-[#FBBF24] scale-105"
                   : "text-[#64748B] hover:text-[#3B82F6] hover:bg-slate-50"
               }`}
@@ -181,8 +200,11 @@ export default function Header({ onOpenAuth, activeSection, onNavigate, isLogged
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
                 className={`w-full text-left px-4 py-3 rounded-xl text-base font-bold transition-all ${
-                  activeSection === item.id
-                    ? "bg-yellow-105 text-yellow-800 border-l-4 border-yellow-400"
+                  activeSection === item.id ||
+                  (item.id === "admin-workspace" && activeWorkspaceTab === "admin") ||
+                  (item.id === "student-workspace" && activeWorkspaceTab === "student") ||
+                  (item.id === "parent-workspace" && activeWorkspaceTab === "parent")
+                    ? "bg-[#FEF3C7] text-[#B45309] border-l-4 border-yellow-400"
                     : "text-gray-600 hover:bg-[#FFFBEB] hover:text-[#B45309]"
                 }`}
               >

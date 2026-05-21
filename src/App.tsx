@@ -91,6 +91,18 @@ export default function App() {
 
   const handleScrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
+    if (sectionId === "student-workspace") {
+      handleSwitchTab("student");
+      return;
+    }
+    if (sectionId === "parent-workspace") {
+      handleSwitchTab("parent");
+      return;
+    }
+    if (sectionId === "admin-workspace") {
+      handleSwitchTab("admin");
+      return;
+    }
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -396,6 +408,7 @@ export default function App() {
         isLoggedIn={isLoggedIn}
         userEmail={userEmail}
         onLogout={handleLogout}
+        activeWorkspaceTab={activeWorkspaceTab}
       />
 
       <main className="flex-grow">
