@@ -158,7 +158,7 @@ export default function App() {
         child_theme: data.childTheme,
         active_plan: "free",
         questions_asked_count: 0,
-        stars_earned: 25
+        stars_earned: 0
       });
     }
   };
@@ -211,7 +211,7 @@ export default function App() {
           child_theme: defaultConfig.theme,
           active_plan: "free",
           questions_asked_count: 0,
-          stars_earned: 25
+          stars_earned: 0
         });
       }
     }
@@ -244,6 +244,8 @@ export default function App() {
     setIsCheckoutOpen(false);
     
     if (userEmail && userEmail.toLowerCase() !== getSuperAdminEmail()) {
+      const currentProfile = await supabaseService.getTutor(userEmail);
+      const currentStars = currentProfile ? currentProfile.stars_earned ?? 0 : 0;
       await supabaseService.saveTutor({
         email: userEmail,
         contact_phone: demoConfig.contactPhone,
@@ -256,7 +258,7 @@ export default function App() {
         child_theme: demoConfig.theme,
         active_plan: "premium",
         questions_asked_count: questionsAskedCount,
-        stars_earned: 25 + (questionsAskedCount * 5)
+        stars_earned: currentStars
       });
     }
   };
@@ -265,8 +267,10 @@ export default function App() {
   React.useEffect(() => {
     if (!isLoggedIn || !userEmail || userEmail.toLowerCase() === getSuperAdminEmail()) return;
 
-    const timer = setTimeout(() => {
-      supabaseService.saveTutor({
+    const timer = setTimeout(async () => {
+      const currentProfile = await supabaseService.getTutor(userEmail);
+      const currentStars = currentProfile ? currentProfile.stars_earned ?? 0 : 0;
+      await supabaseService.saveTutor({
         email: userEmail,
         contact_phone: demoConfig.contactPhone,
         school_name: demoConfig.schoolName,
@@ -278,7 +282,7 @@ export default function App() {
         child_theme: demoConfig.theme,
         active_plan: activePlan,
         questions_asked_count: questionsAskedCount,
-        stars_earned: 25 + (questionsAskedCount * 5)
+        stars_earned: currentStars
       });
     }, 1200);
 

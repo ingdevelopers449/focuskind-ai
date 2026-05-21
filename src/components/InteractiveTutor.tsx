@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, Sparkles, BookOpen, Star, RefreshCw, Trophy, Flame, HelpCircle } from "lucide-react";
 import { DemoConfig, Message, Subject } from "../types";
-import { supabaseService } from "../lib/supabase";
+import { supabaseService, getSuperAdminEmail } from "../lib/supabase";
 
 interface InteractiveTutorProps {
   demoConfig: DemoConfig;
@@ -65,8 +65,8 @@ export default function InteractiveTutor({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [selectedSubject, setSelectedSubject] = useState<Subject>("science");
-  const [stars, setStars] = useState(25);
-  const [streak, setStreak] = useState(3);
+  const [stars, setStars] = useState(0);
+  const [streak, setStreak] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -122,8 +122,21 @@ export default function InteractiveTutor({
     const loadData = async () => {
       try {
         const profile = await supabaseService.getTutor(userEmail);
-        if (profile && typeof profile.stars_earned === "number") {
-          setStars(profile.stars_earned);
+        if (profile) {
+          if (typeof profile.stars_earned === "number") {
+            setStars(profile.stars_earned);
+          }
+          if (profile.created_at) {
+            const createdDate = new Date(profile.created_at);
+            const today = new Date();
+            createdDate.setHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0);
+            const diffTime = today.getTime() - createdDate.getTime();
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            setStreak(Math.max(1, diffDays));
+          } else {
+            setStreak(1);
+          }
         }
 
         const history = await supabaseService.getChatHistory(userEmail);
@@ -133,6 +146,7 @@ export default function InteractiveTutor({
             sender: item.role === "assistant" ? "foli" : "user",
             text: item.content,
             timestamp: new Date(item.created_at || Date.now()),
+            subject: item.subject as Subject,
             suggestedTasks: item.role === "assistant" ? [
               "¡Súper claro, gracias Foli! 👍",
               "Dime otra analogía graciosa 🤹",
@@ -149,6 +163,21 @@ export default function InteractiveTutor({
     loadData();
   }, [isLoggedIn, userEmail]);
 
+  // Save stars to Supabase when they change in the UI
+  useEffect(() => {
+    if (!isLoggedIn || !userEmail || userEmail.toLowerCase() === getSuperAdminEmail()) return;
+    const saveStars = async () => {
+      const currentProfile = await supabaseService.getTutor(userEmail);
+      if (currentProfile) {
+        await supabaseService.saveTutor({
+          ...currentProfile,
+          stars_earned: stars
+        });
+      }
+    };
+    saveStars();
+  }, [stars, isLoggedIn, userEmail]);
+
   const handleSendMessage = async (textToSend: string) => {
     if (!textToSend.trim() || isLoading) return;
 
@@ -159,6 +188,7 @@ export default function InteractiveTutor({
       sender: "user",
       text: textToSend,
       timestamp: new Date(),
+      subject: selectedSubject,
     };
 
     setMessages((prev) => [...prev, newUserMsg]);
@@ -205,6 +235,7 @@ export default function InteractiveTutor({
         sender: "foli",
         text: data.text,
         timestamp: new Date(),
+        subject: selectedSubject,
         suggestedTasks: data.suggestedTasks && data.suggestedTasks.length > 0 ? data.suggestedTasks : [
           "¡Súper claro, gracias Foli! 👍",
           "Dime otra analogía graciosa 🤹",
@@ -275,6 +306,26 @@ export default function InteractiveTutor({
         suggestedTasks: DEFAULT_SUGGESTIONS[selectedSubject],
       },
     ]);
+  };
+
+  // Get all unique user questions to list in the sidebar "Libro de Sabiduría"
+  const recentQuestions = messages
+    .filter(msg => msg.sender === "user")
+    .reduce<Message[]>((acc, current) => {
+      const x = acc.find(item => item.text.trim().toLowerCase() === current.text.trim().toLowerCase());
+      if (!x) {
+        return acc.concat([current]);
+      } else {
+        return acc;
+      }
+    }, [])
+    .reverse()
+    .slice(0, 5); // Show up to 5 recent questions
+
+  const handleSelectRecentQuestion = (q: Message) => {
+    if (q.subject) {
+      setSelectedSubject(q.subject);
+    }
   };
 
   if (isFullscreen) {
@@ -357,6 +408,38 @@ export default function InteractiveTutor({
                 )}
               </div>
 
+              {/* Libro de Sabiduría 📚 */}
+              <div className="bg-slate-900 border border-slate-700/60 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                  <span className="text-xs font-black text-yellow-300 uppercase tracking-wider flex items-center gap-1">
+                    Libro de Sabiduría 📚
+                  </span>
+                </div>
+                
+                {recentQuestions.length === 0 ? (
+                  <p className="text-[11px] text-slate-400 italic">Tus preguntas a Foli aparecerán aquí. ¡Pregúntale algo hoy!</p>
+                ) : (
+                  <div className="flex flex-col gap-1.5">
+                    {recentQuestions.map((q) => {
+                      const subjEmoji = q.subject === "science" ? "🔬" :
+                                        q.subject === "math" ? "📐" :
+                                        q.subject === "history" ? "🏰" :
+                                        q.subject === "art" ? "🎨" : "🗣️";
+                      return (
+                        <button
+                          key={q.id}
+                          onClick={() => handleSelectRecentQuestion(q)}
+                          className="w-full text-left p-2 rounded-xl bg-slate-950/40 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all text-[11px] font-bold text-slate-200 hover:text-white flex items-start gap-1.5 cursor-pointer hover:-translate-y-0.5"
+                        >
+                          <span className="shrink-0">{subjEmoji}</span>
+                          <span className="truncate">{q.text}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               <div className="text-xs text-slate-200 leading-relaxed bg-slate-900/90 p-4 rounded-xl border border-slate-750">
                 ⭐ <strong className="text-yellow-300">Tip:</strong> ¡Responde las misiones rápidas con estrellas de Foli para desbloquear insignias y nuevos rangos espaciales!
               </div>
@@ -395,7 +478,7 @@ export default function InteractiveTutor({
 
             {/* Render Scroll Timeline logs */}
             <div className="flex-1 overflow-y-auto my-3 space-y-4 pr-1 scrollbar-thin">
-              {messages.map((msg) => (
+              {messages.filter(msg => msg.id === "welcome" || !msg.subject || msg.subject === selectedSubject).map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
@@ -639,7 +722,7 @@ export default function InteractiveTutor({
 
           {/* Dialog Stream */}
           <div className="flex-1 overflow-y-auto my-4 space-y-4 pr-1 scrollbar-thin">
-            {messages.map((msg) => (
+            {messages.filter(msg => msg.id === "welcome" || !msg.subject || msg.subject === selectedSubject).map((msg) => (
               <div
                 key={msg.id}
                 className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}

@@ -9,6 +9,7 @@ export interface Message {
   timestamp: Date;
   suggestedTasks?: string[];
   generating?: boolean;
+  subject?: Subject;
 }
 
 export type AgeGroup = "5-7" | "8-10" | "11-13";
