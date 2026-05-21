@@ -88,26 +88,6 @@ export default function SuperAdminDashboard({
               is_mock: false
             }));
         }
-      } else {
-        // Logically load from LocalStorage of registered users
-        const localKeys = Object.keys(localStorage).filter(k => k.startsWith("local_tutor_"));
-        fetched = localKeys.map(key => {
-          try {
-            const item = JSON.parse(localStorage.getItem(key) || "");
-            return {
-              email: item.email,
-              child_name: item.child_name || "Estudiante",
-              active_plan: item.active_plan || "free",
-              payment_status: item.payment_status || (item.active_plan === "premium" ? "activo" : "vencido"),
-              questions_asked_count: item.questions_asked_count || 0,
-              contact_phone: item.contact_phone || "+57 XXX XXX XXXX",
-              created_at: new Date().toISOString(),
-              is_mock: false
-            };
-          } catch {
-            return null;
-          }
-        }).filter(Boolean) as AdminTutorMember[];
       }
 
       // Filter out Super Admin account so it is not listed as a tutor
@@ -259,15 +239,6 @@ export default function SuperAdminDashboard({
         setSchemaErrorMsg(""); // Clear if it succeeds without issue
         console.log("Successfully updated payment status in Supabase!");
       }
-    } else {
-      // Locally update
-      const stored = localStorage.getItem(`local_tutor_${email}`);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        parsed.payment_status = newStatus;
-        parsed.active_plan = correspondingPlan;
-        localStorage.setItem(`local_tutor_${email}`, JSON.stringify(parsed));
-      }
     }
 
     // Alert completion
@@ -374,16 +345,6 @@ export default function SuperAdminDashboard({
         setSchemaErrorMsg("");
         console.log("Added new member to Supabase!");
       }
-    } else {
-      localStorage.setItem(`local_tutor_${emailClean}`, JSON.stringify({
-        email: emailClean,
-        child_name: childNameClean,
-        active_plan: newPlan,
-        payment_status: newStatus,
-        questions_asked_count: 0,
-        contact_phone: phoneClean,
-        stars_earned: 25
-      }));
     }
 
     setNewEmail("");

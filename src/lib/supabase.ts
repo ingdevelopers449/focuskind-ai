@@ -190,8 +190,6 @@ export const supabaseService = {
     }
 
     if (!isSupabaseConfigured || !supabase) {
-      // Save locally to simulate success
-      localStorage.setItem(`local_tutor_${tutor.email}`, JSON.stringify(tutor));
       return false;
     }
 
@@ -250,8 +248,7 @@ export const supabaseService = {
    */
   async getTutor(email: string): Promise<TutorRecord | null> {
     if (!isSupabaseConfigured || !supabase) {
-      const stored = localStorage.getItem(`local_tutor_${email}`);
-      return stored ? JSON.parse(stored) : null;
+      return null;
     }
 
     try {
