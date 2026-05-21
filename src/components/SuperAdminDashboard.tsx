@@ -75,16 +75,28 @@ export default function SuperAdminDashboard({
           .select("*");
           
         if (!error && data) {
-          fetched = data.map((item: any) => ({
-            email: item.email,
-            child_name: item.child_name || "Estudiante",
-            active_plan: item.active_plan || "free",
-            payment_status: item.payment_status || (item.active_plan === "premium" ? "activo" : "vencido"), // Respect stored DB status
-            questions_asked_count: item.questions_asked_count || 0,
-            contact_phone: item.contact_phone || "+57 XXX XXX XXXX",
-            created_at: item.created_at || new Date().toISOString(),
-            is_mock: false
-          }));
+          // Self-healing check: if Super Admin is present in the database, delete them automatically
+          const hasSuperAdmin = data.some((item: any) => item.email.toLowerCase() === "pipelozada994@gmail.com");
+          if (hasSuperAdmin) {
+            console.log("Self-healing: Super Admin found in focuskid_tutors database, deleting now...");
+            await supabase
+              .from("focuskid_tutors")
+              .delete()
+              .eq("email", "pipelozada994@gmail.com");
+          }
+
+          fetched = data
+            .filter((item: any) => item.email.toLowerCase() !== "pipelozada994@gmail.com")
+            .map((item: any) => ({
+              email: item.email,
+              child_name: item.child_name || "Estudiante",
+              active_plan: item.active_plan || "free",
+              payment_status: item.payment_status || (item.active_plan === "premium" ? "activo" : "vencido"), // Respect stored DB status
+              questions_asked_count: item.questions_asked_count || 0,
+              contact_phone: item.contact_phone || "+57 XXX XXX XXXX",
+              created_at: item.created_at || new Date().toISOString(),
+              is_mock: false
+            }));
         }
       } else {
         // Logically load from LocalStorage of registered users

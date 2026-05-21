@@ -179,6 +179,12 @@ export const supabaseService = {
    * Saves or updates a tutor record.
    */
   async saveTutor(tutor: TutorRecord): Promise<boolean> {
+    const trimmedEmail = tutor.email.trim().toLowerCase();
+    if (trimmedEmail === "pipelozada994@gmail.com") {
+      console.warn("Preventing saving of Super Admin to focuskid_tutors");
+      return true; // Silent skip
+    }
+
     if (!isSupabaseConfigured || !supabase) {
       // Save locally to simulate success
       localStorage.setItem(`local_tutor_${tutor.email}`, JSON.stringify(tutor));

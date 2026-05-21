@@ -131,22 +131,24 @@ export default function App() {
       await supabaseService.signUp(data.email, data.password);
     }
 
-    // Persist new profile to Supabase with password
-    await supabaseService.saveTutor({
-      email: data.email,
-      password: data.password || "123456",
-      contact_phone: data.contactPhone,
-      school_name: data.schoolName,
-      has_tdah: !!data.hasTdah,
-      child_name: data.childName,
-      child_age: data.childAge,
-      child_grade: data.childGrade,
-      difficult_subject: data.difficultSubject,
-      child_theme: data.childTheme,
-      active_plan: "free",
-      questions_asked_count: 0,
-      stars_earned: 25
-    });
+    // Persist new profile to Supabase with password (except if owner/superadmin)
+    if (!isOwner) {
+      await supabaseService.saveTutor({
+        email: data.email,
+        password: data.password || "123456",
+        contact_phone: data.contactPhone,
+        school_name: data.schoolName,
+        has_tdah: !!data.hasTdah,
+        child_name: data.childName,
+        child_age: data.childAge,
+        child_grade: data.childGrade,
+        difficult_subject: data.difficultSubject,
+        child_theme: data.childTheme,
+        active_plan: "free",
+        questions_asked_count: 0,
+        stars_earned: 25
+      });
+    }
   };
 
   const handleLoginSuccess = async (email: string, password?: string) => {
@@ -183,21 +185,23 @@ export default function App() {
         difficultSubject: "Matemáticas 📐",
       };
       setDemoConfig(defaultConfig);
-      await supabaseService.saveTutor({
-        email,
-        password: password || "123456",
-        contact_phone: defaultConfig.contactPhone,
-        school_name: defaultConfig.schoolName,
-        has_tdah: defaultConfig.hasTdah,
-        child_name: defaultConfig.childName,
-        child_age: defaultConfig.ageGroup,
-        child_grade: defaultConfig.childGrade,
-        difficult_subject: defaultConfig.difficultSubject,
-        child_theme: defaultConfig.theme,
-        active_plan: "free",
-        questions_asked_count: 0,
-        stars_earned: 25
-      });
+      if (!isOwner) {
+        await supabaseService.saveTutor({
+          email,
+          password: password || "123456",
+          contact_phone: defaultConfig.contactPhone,
+          school_name: defaultConfig.schoolName,
+          has_tdah: defaultConfig.hasTdah,
+          child_name: defaultConfig.childName,
+          child_age: defaultConfig.ageGroup,
+          child_grade: defaultConfig.childGrade,
+          difficult_subject: defaultConfig.difficultSubject,
+          child_theme: defaultConfig.theme,
+          active_plan: "free",
+          questions_asked_count: 0,
+          stars_earned: 25
+        });
+      }
     }
   };
 
@@ -227,7 +231,7 @@ export default function App() {
     setActivePlan("premium");
     setIsCheckoutOpen(false);
     
-    if (userEmail) {
+    if (userEmail && userEmail.toLowerCase() !== "pipelozada994@gmail.com") {
       await supabaseService.saveTutor({
         email: userEmail,
         contact_phone: demoConfig.contactPhone,
@@ -247,7 +251,7 @@ export default function App() {
 
   // Debounced auto-save effect triggered when config, plan or questions change
   React.useEffect(() => {
-    if (!isLoggedIn || !userEmail) return;
+    if (!isLoggedIn || !userEmail || userEmail.toLowerCase() === "pipelozada994@gmail.com") return;
 
     const timer = setTimeout(() => {
       supabaseService.saveTutor({
