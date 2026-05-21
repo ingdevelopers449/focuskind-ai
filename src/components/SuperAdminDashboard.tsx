@@ -108,6 +108,9 @@ export default function SuperAdminDashboard({
         }).filter(Boolean) as AdminTutorMember[];
       }
 
+      // Filter out Super Admin account so it is not listed as a tutor
+      fetched = fetched.filter(m => m.email.toLowerCase() !== "pipelozada994@gmail.com");
+
       // Add default mock cohorts representing realistic multi-user status (actives, vencidos, mora)
       // to easily evaluate SuperAdmin capabilities out-of-the-box
       const baseMocks: AdminTutorMember[] = [
@@ -153,8 +156,8 @@ export default function SuperAdminDashboard({
         }
       ];
 
-      // Insert current active logged in parent user dynamically so it registers immediately in the table
-      if (isLoggedIn && currentEmail) {
+      // Insert current active logged in parent user dynamically so it registers immediately in the table (skip if it is Super Admin)
+      if (isLoggedIn && currentEmail && currentEmail.toLowerCase() !== "pipelozada994@gmail.com") {
         const alreadyExists = fetched.some(m => m.email.toLowerCase() === currentEmail.toLowerCase());
         if (!alreadyExists) {
           fetched.unshift({
@@ -182,6 +185,7 @@ export default function SuperAdminDashboard({
           });
         }
       }
+
 
       // Merge and set
       setMembers(showDemoData ? [...fetched, ...baseMocks] : fetched);
