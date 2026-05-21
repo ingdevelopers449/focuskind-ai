@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Users, 
-  TrendingUp, 
-  DollarSign, 
-  ShieldAlert, 
-  CreditCard, 
-  RefreshCw, 
-  Filter, 
-  Trash2, 
-  Plus, 
-  CheckCircle, 
-  AlertTriangle, 
-  Clock, 
+import {
+  Users,
+  TrendingUp,
+  DollarSign,
+  ShieldAlert,
+  CreditCard,
+  RefreshCw,
+  Filter,
+  Trash2,
+  Plus,
+  CheckCircle,
+  AlertTriangle,
+  Clock,
   Search,
   Check,
   UserCheck
@@ -37,23 +37,23 @@ interface AdminTutorMember {
   is_mock?: boolean;
 }
 
-export default function SuperAdminDashboard({ 
-  currentEmail, 
-  isLoggedIn, 
-  activePlan, 
-  questionsAskedCount 
+export default function SuperAdminDashboard({
+  currentEmail,
+  isLoggedIn,
+  activePlan,
+  questionsAskedCount
 }: SuperAdminDashboardProps) {
   const [members, setMembers] = useState<AdminTutorMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<"all" | "activo" | "vencido" | "mora">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [schemaErrorMsg, setSchemaErrorMsg] = useState("");
-  
+
   // Custom delete confirmation dialog states
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   // Form for manually adding mock member to simulate growth
   const [newEmail, setNewEmail] = useState("");
   const [newChildName, setNewChildName] = useState("");
@@ -66,13 +66,13 @@ export default function SuperAdminDashboard({
     setLoading(true);
     try {
       let fetched: AdminTutorMember[] = [];
-      
+
       // 1. Load real data from Supabase if keys exist
       if (isSupabaseConfigured && supabase) {
         const { data, error } = await supabase
           .from("focuskid_tutors")
           .select("*");
-          
+
         if (!error && data) {
           fetched = data
             .filter((item: any) => item.email.toLowerCase() !== getSuperAdminEmail())
@@ -179,7 +179,7 @@ export default function SuperAdminDashboard({
 
   useEffect(() => {
     loadRegisteredUsers();
-  }, [currentEmail, isLoggedIn, activePlan, questionsAskedCount, showDemoData]);
+  }, [currentEmail, isLoggedIn, activePlan, questionsAskedCount]);
 
   // Handle local state updates to simulate business operations
   const handleUpdatePaymentStatus = async (email: string, newStatus: "activo" | "vencido" | "mora") => {
@@ -221,11 +221,11 @@ export default function SuperAdminDashboard({
           console.warn("Schema cache missing payment_status, retrying without it...");
           setSchemaErrorMsg("¡Error de caché en Supabase! La columna 'payment_status' no se encuentra registrada en el caché del esquema de Supabase.");
           delete payload.payment_status;
-          
+
           const { error: retryError } = await supabase
             .from("focuskid_tutors")
             .upsert(payload, { onConflict: "email" });
-            
+
           if (retryError) {
             console.error("Error updating tutor status during retry:", retryError);
           } else {
@@ -254,7 +254,7 @@ export default function SuperAdminDashboard({
     setIsDeleting(true);
     try {
       const email = memberToDelete;
-      
+
       // Update local React state list
       setMembers(prev => prev.filter(m => m.email !== email));
 
@@ -327,11 +327,11 @@ export default function SuperAdminDashboard({
           console.warn("Schema cache missing payment_status, retrying insert without it...");
           setSchemaErrorMsg("¡Error de caché en Supabase! La columna 'payment_status' no se encuentra registrada en el caché del esquema de Supabase.");
           delete payload.payment_status;
-          
+
           const { error: retryError } = await supabase
             .from("focuskid_tutors")
             .insert(payload);
-            
+
           if (retryError) {
             console.error("Error adding tutor during retry:", retryError);
           } else {
@@ -349,7 +349,7 @@ export default function SuperAdminDashboard({
     setNewEmail("");
     setNewChildName("");
     setNewPhone("");
-    
+
     setAddSuccessMsg("¡Membresía agregada exitosamente de forma persistente!");
     setTimeout(() => setAddSuccessMsg(""), 3500);
   };
@@ -363,18 +363,18 @@ export default function SuperAdminDashboard({
 
   // Monthly Recurring Revenue in COP (15,000 COP per active user)
   const simulatedMRR = payingCount * 15000;
-  
+
   // Custom business metrics
-  const retentionRate = totalUsersCount > 0 
-    ? Math.round(((payingCount + vencidosCount * 0.4) / totalUsersCount) * 100) 
+  const retentionRate = totalUsersCount > 0
+    ? Math.round(((payingCount + vencidosCount * 0.4) / totalUsersCount) * 100)
     : 100;
   const cacCop = 8400; // Customer Acquisition Cost COP
   const ltvCop = 180000; // Customer Lifetime Value COP
 
   // Filter list based on checks
   const filteredMembers = members.filter(m => {
-    const matchesSearch = m.email.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          m.child_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = m.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.child_name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterStatus === "all" || m.payment_status === filterStatus;
     return matchesSearch && matchesFilter;
   });
@@ -382,7 +382,7 @@ export default function SuperAdminDashboard({
   return (
     <section id="superadmin" className="py-12 bg-slate-900 text-slate-100 rounded-[36px] border-8 border-indigo-600 shadow-2xl p-6 sm:p-10 text-left space-y-10 animate-fade-in relative overflow-hidden">
       <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-      
+
       {/* Header Badge */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-800 pb-8 z-10 relative">
         <div className="space-y-2">
@@ -416,7 +416,7 @@ export default function SuperAdminDashboard({
 
       {/* METRIC CARDS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
+
         {/* Metric 1: Monthly Recurring Revenue */}
         <div className="bg-slate-950 p-5 rounded-3xl border-2 border-indigo-500/30 shadow-inner flex flex-col justify-between">
           <div className="space-y-1.5">
@@ -501,7 +501,7 @@ export default function SuperAdminDashboard({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* ADD MANUAL MEMBER COHORT FORM */}
         <div className="lg:col-span-4 bg-slate-950 rounded-3xl border-2 border-indigo-500/20 p-5 sm:p-6 space-y-4">
           <div className="text-left space-y-1">
@@ -596,7 +596,7 @@ export default function SuperAdminDashboard({
               <h3 className="font-black text-lg text-white">Directorio de Cuentas Familiares</h3>
               <p className="text-slate-400 text-xs font-semibold font-mono text-indigo-300/80">Sincroniza y gestiona las cuentas reales registradas en Supabase.</p>
             </div>
-            
+
             {/* Search Input bar */}
             <div className="relative max-w-xs flex-grow text-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-3.5 h-3.5" />
@@ -614,41 +614,37 @@ export default function SuperAdminDashboard({
           <div className="flex flex-wrap gap-2 text-[10px] uppercase font-black tracking-wider">
             <button
               onClick={() => setFilterStatus("all")}
-              className={`px-3 py-1.5 rounded-lg border cursor-pointer transition-all ${
-                filterStatus === "all"
+              className={`px-3 py-1.5 rounded-lg border cursor-pointer transition-all ${filterStatus === "all"
                   ? "bg-indigo-600 text-white border-indigo-500"
                   : "bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200"
-              }`}
+                }`}
             >
               Todos ({members.length})
             </button>
             <button
               onClick={() => setFilterStatus("activo")}
-              className={`px-3 py-1.5 rounded-lg border cursor-pointer transition-all ${
-                filterStatus === "activo"
+              className={`px-3 py-1.5 rounded-lg border cursor-pointer transition-all ${filterStatus === "activo"
                   ? "bg-emerald-600 text-white border-emerald-500"
                   : "bg-slate-900 text-[#10B981] border-[#10B981]/20 hover:bg-emerald-950/20"
-              }`}
+                }`}
             >
               Activo ({payingCount})
             </button>
             <button
               onClick={() => setFilterStatus("vencido")}
-              className={`px-3 py-1.5 rounded-lg border cursor-pointer transition-all ${
-                filterStatus === "vencido"
+              className={`px-3 py-1.5 rounded-lg border cursor-pointer transition-all ${filterStatus === "vencido"
                   ? "bg-amber-600 text-white border-amber-500"
                   : "bg-slate-900 text-[#F59E0B] border-[#F59E0B]/20 hover:bg-amber-950/20"
-              }`}
+                }`}
             >
               Vencido ({vencidosCount})
             </button>
             <button
               onClick={() => setFilterStatus("mora")}
-              className={`px-3 py-1.5 rounded-lg border cursor-pointer transition-all ${
-                filterStatus === "mora"
+              className={`px-3 py-1.5 rounded-lg border cursor-pointer transition-all ${filterStatus === "mora"
                   ? "bg-rose-600 text-white border-rose-500"
                   : "bg-slate-900 text-rose-400 border-rose-400/20 hover:bg-rose-950/20"
-              }`}
+                }`}
             >
               Mora ({moraCount})
             </button>
@@ -687,13 +683,12 @@ export default function SuperAdminDashboard({
                           )}
                         </div>
                       </td>
-                      
+
                       <td className="p-3 select-all">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-                          member.active_plan === "premium" 
-                            ? "bg-indigo-950 text-indigo-400 border border-indigo-800" 
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${member.active_plan === "premium"
+                            ? "bg-indigo-950 text-indigo-400 border border-indigo-800"
                             : "bg-slate-900 text-slate-500 border border-slate-800"
-                        }`}>
+                          }`}>
                           {member.active_plan.toUpperCase()}
                         </span>
                       </td>
@@ -763,7 +758,7 @@ export default function SuperAdminDashboard({
           <div className="bg-slate-900 border-4 border-rose-500 rounded-[32px] p-6 sm:p-8 max-w-md w-full text-center space-y-6 shadow-2xl relative overflow-hidden">
             {/* Soft decorative background glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
-            
+
             <div className="mx-auto w-16 h-16 bg-rose-950/50 border-4 border-rose-500 rounded-2xl flex items-center justify-center text-rose-400">
               <AlertTriangle className="w-8 h-8 animate-pulse" />
             </div>
@@ -798,7 +793,7 @@ export default function SuperAdminDashboard({
               >
                 Cancelar
               </button>
-              
+
               <button
                 type="button"
                 onClick={confirmDeleteMember}
