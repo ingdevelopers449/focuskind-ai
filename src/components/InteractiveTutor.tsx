@@ -70,6 +70,17 @@ export default function InteractiveTutor({
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const getSubjectLabelEs = (sub: Subject) => {
+    switch (sub) {
+      case "science": return "ciencias";
+      case "math": return "matemáticas";
+      case "history": return "historia";
+      case "art": return "arte";
+      case "languages": return "idiomas";
+      default: return "temas de estudio";
+    }
+  };
+
   const limitReached = activePlan === "free" && questionsAskedCount >= 10;
 
   // Initialize companion greetings whenever core configuration changes
@@ -319,44 +330,44 @@ export default function InteractiveTutor({
                 </div>
               </div>
 
-              <div className="text-center">
-                <h3 className="font-black text-lg text-white leading-tight">Foli el Zorrito</h3>
-                <p className="text-[10px] text-[#FBBF24] font-bold">Tu Tutor Inteligente de IA</p>
+              <div className="text-center space-y-1">
+                <h3 className="font-black text-xl sm:text-2xl text-white leading-tight">Foli el Zorrito</h3>
+                <p className="text-xs text-yellow-300 font-bold uppercase tracking-wider">Tu Tutor Inteligente de IA</p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs">
-                <div className="flex justify-between items-center text-[11px] font-bold">
-                  <span className="text-slate-400">Puntaje:</span>
-                  <span className="text-yellow-400 font-extrabold">{stars} estrellas</span>
+              <div className="bg-slate-900 border border-slate-700/60 rounded-2xl p-4 sm:p-5 space-y-3.5 text-xs sm:text-sm">
+                <div className="flex justify-between items-center font-extrabold">
+                  <span className="text-slate-300">Puntaje:</span>
+                  <span className="text-yellow-400 font-black text-sm bg-yellow-950/40 px-2 py-0.5 rounded-lg border border-yellow-900/50">{stars} estrellas</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px] font-bold">
-                  <span className="text-slate-400">Estudio:</span>
-                  <span className="text-orange-400 font-extrabold">{streak} días 🔥</span>
+                <div className="flex justify-between items-center font-extrabold">
+                  <span className="text-slate-300">Estudio:</span>
+                  <span className="text-orange-400 font-black text-sm bg-orange-950/40 px-2 py-0.5 rounded-lg border border-orange-900/50">{streak} días 🔥</span>
                 </div>
-                <div className="flex justify-between items-center text-[11px] font-bold text-left">
-                  <span className="text-slate-400">Tema preferido:</span>
-                  <span className="text-blue-400 font-extrabold capitalize block truncate max-w-[120px]">{demoConfig.theme}</span>
+                <div className="flex justify-between items-center font-extrabold text-left">
+                  <span className="text-slate-300">Tema preferido:</span>
+                  <span className="text-sky-400 font-black capitalize block truncate max-w-[125px]">{demoConfig.theme}</span>
                 </div>
                 {demoConfig.hasTdah && (
-                  <div className="border-t border-slate-800 pt-2 text-center">
-                    <span className="bg-red-955 border border-red-805 text-[#FECACA] text-[9px] font-black px-2 py-0.5 rounded-full inline-block uppercase tracking-wider">
+                  <div className="border-t border-slate-800 pt-2.5 text-center">
+                    <span className="bg-rose-600 border border-rose-400 text-rose-100 text-[10px] font-black px-3 py-1 rounded-lg inline-block uppercase tracking-wider shadow-sm">
                       ⚡ MODO TDAH ACTIVADO
                     </span>
                   </div>
                 )}
               </div>
 
-              <div className="text-[10px] text-slate-400 leading-relaxed bg-slate-900 p-3 rounded-xl border border-slate-800">
-                ⭐ <strong>Tip:</strong> ¡Responde las misiones rápidas con estrellas de Foli para desbloquear insignias y nuevos rangos espaciales!
+              <div className="text-xs text-slate-200 leading-relaxed bg-slate-900/90 p-4 rounded-xl border border-slate-750">
+                ⭐ <strong className="text-yellow-300">Tip:</strong> ¡Responde las misiones rápidas con estrellas de Foli para desbloquear insignias y nuevos rangos espaciales!
               </div>
             </div>
 
-            <div className="border-t border-slate-800 pt-3 flex flex-col gap-2">
+            <div className="border-t border-slate-800 pt-4 flex flex-col gap-2">
               <button
                 onClick={handleClearHistory}
-                className="text-[11px] font-black text-slate-400 hover:text-white hover:underline transition-all flex items-center gap-1 justify-center"
+                className="text-xs sm:text-sm font-black text-slate-300 hover:text-white hover:underline transition-all flex items-center gap-1.5 justify-center cursor-pointer"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className="w-4 h-4" />
                 Limpiar Historial de Chat
               </button>
             </div>
@@ -472,7 +483,7 @@ export default function InteractiveTutor({
                       type="text"
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
-                      placeholder={`Pregúntale a Foli sobre ${selectedSubject}...`}
+                      placeholder={`Pregúntale a Foli sobre ${getSubjectLabelEs(selectedSubject)}...`}
                       className="flex-1 bg-white border-2 border-slate-300 focus:border-[#3B82F6] rounded-xl px-4 py-2 text-xs font-semibold outline-none text-[#1E293B]"
                       disabled={isLoading}
                     />
@@ -534,37 +545,37 @@ export default function InteractiveTutor({
               </div>
             </div>
 
-            <div>
-              <h3 className="font-black text-2xl text-white tracking-tight">Foli el Zorrito</h3>
-              <p className="text-xs text-[#FBBF24] font-bold">Tutor de IA Generativa</p>
+            <div className="space-y-1">
+              <h3 className="font-black text-2xl sm:text-3xl text-white tracking-tight">Foli el Zorrito</h3>
+              <p className="text-sm text-yellow-300 font-bold uppercase tracking-wider">Tutor Inteligente de IA</p>
             </div>
 
             {/* Simulated Child Metrics - highly gamified for kids with Vibrant colors */}
-            <div className="bg-slate-800/80 p-4 rounded-3xl border-2 border-slate-700 space-y-3">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold flex items-center gap-1 text-slate-300">
-                  <Star className="w-4 h-4 text-[#F59E0B] fill-[#F59E0B]" />
+            <div className="bg-slate-900 border-2 border-slate-700/60 p-5 rounded-3xl space-y-4 shadow-inner">
+              <div className="flex items-center justify-between text-sm sm:text-base">
+                <span className="font-extrabold flex items-center gap-1.5 text-slate-200">
+                  <Star className="w-4.5 h-4.5 text-[#F59E0B] fill-[#F59E0B]" />
                   Estrellas de Oro:
                 </span>
-                <span className="bg-[#FEF3C7] text-[#B45309] font-black px-2.5 py-0.5 rounded-full border border-[#F59E0B]">
+                <span className="bg-[#FEF3C7] text-[#B45309] font-black px-3 py-1 rounded-full border border-[#F59E0B] shadow-sm text-xs sm:text-sm">
                   {stars} ⭐
                 </span>
               </div>
               
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold flex items-center gap-1 text-slate-300">
-                  <Flame className="w-4 h-4 text-orange-400 fill-orange-400" />
+              <div className="flex items-center justify-between text-sm sm:text-base">
+                <span className="font-extrabold flex items-center gap-1.5 text-slate-200">
+                  <Flame className="w-4.5 h-4.5 text-orange-400 fill-orange-400" />
                   Racha de Estudio:
                 </span>
-                <span className="bg-[#FEF3C7] text-[#B45309] font-black px-2.5 py-0.5 rounded-full border border-[#F59E0B]">
+                <span className="bg-[#FEF3C7] text-[#B45309] font-black px-3 py-1 rounded-full border border-[#F59E0B] shadow-sm text-xs sm:text-sm">
                   {streak} Días 🔥
                 </span>
               </div>
 
-              <div className="pt-2 border-t border-slate-700 space-y-2">
+              <div className="pt-3 border-t border-slate-800 space-y-3.5 text-left">
                 <div>
-                  <p className="text-[9px] text-slate-400 tracking-wider font-extrabold uppercase">Rango Actual</p>
-                  <span className="text-xs font-black text-[#FEF3C7] tracking-wide block">
+                  <p className="text-[11px] text-slate-400 tracking-wider font-extrabold uppercase">Rango Actual</p>
+                  <span className="text-sm font-black text-white tracking-wide block mt-0.5">
                     {demoConfig.theme === "espacio" ? "🛸 Pequeño Astronauta" :
                      demoConfig.theme === "dinosaurios" ? "🦕 Explorador Jurásico" :
                      demoConfig.theme === "videojuegos" ? "⛏️ Constructor Experto" : "🔮 Hechicero de Grado 1"}
@@ -572,18 +583,18 @@ export default function InteractiveTutor({
                 </div>
 
                 <div>
-                  <p className="text-[9px] text-slate-400 tracking-wider font-extrabold uppercase">Plan Actual</p>
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full inline-block mt-0.5 ${
-                    activePlan === "premium" ? "bg-emerald-100 text-emerald-800 border border-emerald-400 animate-pulse" : "bg-slate-700 text-slate-300"
+                  <p className="text-[11px] text-slate-400 tracking-wider font-extrabold uppercase">Plan Actual</p>
+                  <span className={`text-[11px] font-black px-3 py-1 rounded-full inline-block mt-1 ${
+                    activePlan === "premium" ? "bg-emerald-100 text-emerald-800 border border-emerald-400 animate-pulse" : "bg-slate-800 text-slate-350 border border-slate-700"
                   }`}>
                     {activePlan === "premium" ? "SUPER ESTUDIANTE PRO ✨" : `GRATUITO (${questionsAskedCount}/10 Preguntas)`}
                   </span>
                 </div>
 
                 {demoConfig.hasTdah && (
-                  <div>
-                    <span className="bg-red-950 text-red-100 border border-red-500 text-[9px] font-black px-2 py-0.5 rounded-md inline-block">
-                      MODO TDAH OPTIMIZADO ⚡
+                  <div className="pt-1">
+                    <span className="bg-rose-600 border border-rose-400 text-rose-100 text-[10px] font-black px-3 py-1 rounded-lg inline-block uppercase tracking-wider shadow-sm">
+                      ⚡ MODO TDAH OPTIMIZADO
                     </span>
                   </div>
                 )}
@@ -591,16 +602,16 @@ export default function InteractiveTutor({
             </div>
           </div>
 
-          <div className="pt-6 space-y-3">
-            <div className="text-[10px] text-slate-300 bg-slate-800/60 p-2.5 rounded-2xl border border-slate-700 text-left leading-relaxed">
+          <div className="pt-6 space-y-4">
+            <div className="text-xs text-slate-200 bg-slate-900 border border-slate-850 p-3.5 rounded-2xl text-left leading-relaxed">
               💡 <strong>Tema de Estudio:</strong> Adaptado dinámicamente utilizando vocabulario motivador de {demoConfig.theme.toUpperCase()}.
             </div>
             
             <button
               onClick={handleClearHistory}
-              className="text-xs font-black text-slate-300 hover:text-white hover:underline transition-all flex items-center gap-1 justify-center mx-auto"
+              className="text-xs sm:text-sm font-black text-slate-350 hover:text-white hover:underline transition-all flex items-center gap-1.5 justify-center mx-auto cursor-pointer"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-4 h-4" />
               Limpiar Pizarra
             </button>
           </div>
@@ -729,7 +740,7 @@ export default function InteractiveTutor({
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder={`¡Hola Foli! Pregunta sobre ${selectedSubject} de tus asignaturas...`}
+                  placeholder={`¡Hola Foli! Pregunta sobre ${getSubjectLabelEs(selectedSubject)} de tus asignaturas...`}
                   className="flex-1 bg-white border-4 border-slate-200 focus:border-[#3B82F6] rounded-2xl px-4 py-3 text-sm font-semibold outline-none transition-all placeholder:text-slate-400 text-[#1E293B]"
                   disabled={isLoading}
                 />
