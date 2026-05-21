@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Sparkles, Menu, X, Rocket, Smile, LogOut, UserCheck } from "lucide-react";
+import { getSuperAdminEmail } from "../lib/supabase";
 
 interface HeaderProps {
   onOpenAuth: (mode: "login" | "register") => void;
@@ -77,7 +78,7 @@ export default function Header({ onOpenAuth, activeSection, onNavigate, isLogged
                 <div className="bg-[#D1FAE5] border-2 border-[#10B981] text-[#065F46] px-4 py-2 rounded-full font-extrabold text-xs flex items-center gap-1.5 shadow-sm">
                   <UserCheck className="w-3.5 h-3.5" />
                   <span className="truncate max-w-[140px]" title={userEmail}>
-                    {userEmail.toLowerCase() === "pipelozada994@gmail.com" ? "SuperAdmin" : `Tutor: ${userEmail.split("@")[0]}`}
+                    {userEmail.toLowerCase() === getSuperAdminEmail() ? "SuperAdmin" : `Tutor: ${userEmail.split("@")[0]}`}
                   </span>
                 </div>
                 <button
@@ -170,7 +171,7 @@ export default function Header({ onOpenAuth, activeSection, onNavigate, isLogged
             </div>
           ) : (
             <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-center text-xs font-bold text-emerald-800">
-              {userEmail.toLowerCase() === "pipelozada994@gmail.com" ? "SuperAdmin Conectado" : "Tutor Conectado"}: {userEmail}
+              {userEmail.toLowerCase() === getSuperAdminEmail() ? "SuperAdmin Conectado" : "Tutor Conectado"}: {userEmail}
             </div>
           )}
 

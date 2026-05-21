@@ -21,6 +21,10 @@ export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
+export const getSuperAdminEmail = (): string => {
+  return ((import.meta as any).env.VITE_SUPER_ADMIN_EMAIL || "pipelozada994@gmail.com").trim().toLowerCase();
+};
+
 /**
  * SQL needed for Supabase SQL Editor.
  * This can be displayed directly inside the Tutor panel or settings for ease of use.
@@ -97,7 +101,7 @@ export const supabaseService = {
    */
   async signUp(email: string, password: string): Promise<{ success: boolean; error?: string }> {
     const trimmedEmail = email.trim().toLowerCase();
-    const isSuperAdmin = trimmedEmail === "pipelozada994@gmail.com";
+    const isSuperAdmin = trimmedEmail === getSuperAdminEmail();
 
     // 1. Check if the user is already registered in our tutor database table
     const tutor = await this.getTutor(trimmedEmail);
@@ -135,7 +139,7 @@ export const supabaseService = {
    */
   async signIn(email: string, password: string): Promise<{ success: boolean; error?: string }> {
     const trimmedEmail = email.trim().toLowerCase();
-    const isSuperAdmin = trimmedEmail === "pipelozada994@gmail.com";
+    const isSuperAdmin = trimmedEmail === getSuperAdminEmail();
 
     if (isSuperAdmin) {
       if (!isSupabaseConfigured || !supabase) {
@@ -180,7 +184,7 @@ export const supabaseService = {
    */
   async saveTutor(tutor: TutorRecord): Promise<boolean> {
     const trimmedEmail = tutor.email.trim().toLowerCase();
-    if (trimmedEmail === "pipelozada994@gmail.com") {
+    if (trimmedEmail === getSuperAdminEmail()) {
       console.warn("Preventing saving of Super Admin to focuskid_tutors");
       return true; // Silent skip
     }

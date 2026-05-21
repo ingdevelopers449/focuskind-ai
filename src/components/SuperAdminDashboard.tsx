@@ -17,7 +17,7 @@ import {
   UserCheck
 } from "lucide-react";
 import { DemoConfig } from "../types";
-import { supabase, isSupabaseConfigured, supabaseService } from "../lib/supabase";
+import { supabase, isSupabaseConfigured, supabaseService, getSuperAdminEmail } from "../lib/supabase";
 
 interface SuperAdminDashboardProps {
   currentEmail: string;
@@ -75,18 +75,8 @@ export default function SuperAdminDashboard({
           .select("*");
           
         if (!error && data) {
-          // Self-healing check: if Super Admin is present in the database, delete them automatically
-          const hasSuperAdmin = data.some((item: any) => item.email.toLowerCase() === "pipelozada994@gmail.com");
-          if (hasSuperAdmin) {
-            console.log("Self-healing: Super Admin found in focuskid_tutors database, deleting now...");
-            await supabase
-              .from("focuskid_tutors")
-              .delete()
-              .eq("email", "pipelozada994@gmail.com");
-          }
-
           fetched = data
-            .filter((item: any) => item.email.toLowerCase() !== "pipelozada994@gmail.com")
+            .filter((item: any) => item.email.toLowerCase() !== getSuperAdminEmail())
             .map((item: any) => ({
               email: item.email,
               child_name: item.child_name || "Estudiante",
@@ -121,7 +111,7 @@ export default function SuperAdminDashboard({
       }
 
       // Filter out Super Admin account so it is not listed as a tutor
-      fetched = fetched.filter(m => m.email.toLowerCase() !== "pipelozada994@gmail.com");
+      fetched = fetched.filter(m => m.email.toLowerCase() !== getSuperAdminEmail());
 
       // Add default mock cohorts representing realistic multi-user status (actives, vencidos, mora)
       // to easily evaluate SuperAdmin capabilities out-of-the-box
@@ -169,7 +159,7 @@ export default function SuperAdminDashboard({
       ];
 
       // Insert current active logged in parent user dynamically so it registers immediately in the table (skip if it is Super Admin)
-      if (isLoggedIn && currentEmail && currentEmail.toLowerCase() !== "pipelozada994@gmail.com") {
+      if (isLoggedIn && currentEmail && currentEmail.toLowerCase() !== getSuperAdminEmail()) {
         const alreadyExists = fetched.some(m => m.email.toLowerCase() === currentEmail.toLowerCase());
         if (!alreadyExists) {
           fetched.unshift({
@@ -442,7 +432,7 @@ export default function SuperAdminDashboard({
           </span>
           <div className="flex items-center gap-2 mt-1">
             <span className="bg-slate-800 text-amber-400 border border-amber-400/30 text-[10px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-md">
-              👑 OWNER ADMIN: pipelozada994@gmail.com
+              👑 OWNER ADMIN: {currentEmail}
             </span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight mt-2">

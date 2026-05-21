@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X, Sparkles, Star, Trophy, Mail, Lock, User, Smile, ShieldCheck, Heart, Phone, School, GraduationCap, Brain, Eye, EyeOff } from "lucide-react";
 import { AgeGroup } from "../types";
-import { supabaseService } from "../lib/supabase";
+import { supabaseService, getSuperAdminEmail } from "../lib/supabase";
 
 export interface AuthModalProps {
   isOpen: boolean;
@@ -144,7 +144,7 @@ export default function AuthModal({ isOpen, onClose, initialMode, onRegisterSucc
         return;
       }
 
-      const isSuperAdmin = trimmedEmail === "pipelozada994@gmail.com";
+      const isSuperAdmin = trimmedEmail === getSuperAdminEmail();
 
       if (isSuperAdmin) {
         onClose();

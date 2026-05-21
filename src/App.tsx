@@ -12,7 +12,7 @@ import CheckoutModal from "./components/CheckoutModal";
 import ParentDashboard from "./components/ParentDashboard";
 import SuperAdminDashboard from "./components/SuperAdminDashboard";
 import { DemoConfig } from "./types";
-import { supabaseService, isSupabaseConfigured } from "./lib/supabase";
+import { supabaseService, isSupabaseConfigured, getSuperAdminEmail } from "./lib/supabase";
 
 export default function App() {
   const [demoConfig, setDemoConfig] = useState<DemoConfig>({
@@ -46,7 +46,7 @@ export default function App() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<"student" | "parent" | "admin">(() => {
     const email = localStorage.getItem("focuskid_user_email") || "";
-    if (email.toLowerCase() === "pipelozada994@gmail.com") {
+    if (email.toLowerCase() === getSuperAdminEmail()) {
       return "admin";
     }
     return "student";
@@ -111,7 +111,7 @@ export default function App() {
   }) => {
     setIsLoggedIn(true);
     setUserEmail(data.email);
-    const isOwner = data.email.toLowerCase() === "pipelozada994@gmail.com";
+    const isOwner = data.email.toLowerCase() === getSuperAdminEmail();
     setActiveWorkspaceTab(isOwner ? "admin" : "student");
 
     const newConfig: DemoConfig = {
@@ -154,7 +154,7 @@ export default function App() {
   const handleLoginSuccess = async (email: string, password?: string) => {
     setIsLoggedIn(true);
     setUserEmail(email);
-    const isOwner = email.toLowerCase() === "pipelozada994@gmail.com";
+    const isOwner = email.toLowerCase() === getSuperAdminEmail();
     setActiveWorkspaceTab(isOwner ? "admin" : "student");
     
     // Load historical tutor configurations from Supabase or localStorage
@@ -231,7 +231,7 @@ export default function App() {
     setActivePlan("premium");
     setIsCheckoutOpen(false);
     
-    if (userEmail && userEmail.toLowerCase() !== "pipelozada994@gmail.com") {
+    if (userEmail && userEmail.toLowerCase() !== getSuperAdminEmail()) {
       await supabaseService.saveTutor({
         email: userEmail,
         contact_phone: demoConfig.contactPhone,
@@ -251,7 +251,7 @@ export default function App() {
 
   // Debounced auto-save effect triggered when config, plan or questions change
   React.useEffect(() => {
-    if (!isLoggedIn || !userEmail || userEmail.toLowerCase() === "pipelozada994@gmail.com") return;
+    if (!isLoggedIn || !userEmail || userEmail.toLowerCase() === getSuperAdminEmail()) return;
 
     const timer = setTimeout(() => {
       supabaseService.saveTutor({
@@ -434,7 +434,7 @@ export default function App() {
                 <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none" />
                 
                 <div className="space-y-2.5 text-left z-10">
-                  {userEmail.toLowerCase() === "pipelozada994@gmail.com" ? (
+                  {userEmail.toLowerCase() === getSuperAdminEmail() ? (
                     <>
                       <span className="bg-amber-400 text-slate-950 font-extrabold text-[10px] px-3.5 py-1.5 rounded-full uppercase tracking-wider inline-block border-2 border-white shadow-sm">
                         👑 ACCESO OWNER SUPERADMIN MASTER
@@ -463,7 +463,7 @@ export default function App() {
 
                 </div>
 
-                {userEmail.toLowerCase() === "pipelozada994@gmail.com" ? (
+                {userEmail.toLowerCase() === getSuperAdminEmail() ? (
                   <div className="flex items-center gap-4 shrink-0 z-10">
                     <div className="bg-white/20 backdrop-blur-md border border-white/30 px-6 py-4.5 rounded-[24px] text-center shadow-lg">
                       <span className="block text-2xl font-black text-amber-300">👑 MASTER</span>
@@ -489,7 +489,7 @@ export default function App() {
               </div>
 
               {/* Chunky Family Switches - Hidden for SuperAdmin to isolate business operations completely */}
-              {userEmail.toLowerCase() !== "pipelozada994@gmail.com" && (
+              {userEmail.toLowerCase() !== getSuperAdminEmail() && (
                 <div className="flex flex-wrap md:flex-nowrap border-4 border-slate-300 p-2 rounded-[32px] bg-white max-w-2xl mx-auto shadow-md gap-2 md:gap-0">
                   <button
                     onClick={() => handleSwitchTab("student")}
