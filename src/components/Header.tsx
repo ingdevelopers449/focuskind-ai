@@ -99,10 +99,11 @@ export default function Header({
                 </div>
                 <button
                   onClick={onLogout}
-                  className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                  className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-full font-black text-[11px] shadow-[0_3px_0_#BE123C] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 uppercase tracking-wide"
                   title="Cerrar Sesión"
                 >
-                  <LogOut className="w-4.5 h-4.5" />
+                  <LogOut className="w-3.5 h-3.5" />
+                  Salir
                 </button>
               </div>
             )}
@@ -146,8 +147,9 @@ export default function Header({
           ) : (
             <button
               onClick={onLogout}
-              className="p-1 px-2.5 text-xs text-red-600 bg-red-50 rounded-full font-bold border border-red-200"
+              className="px-3 py-1.5 text-xs font-black text-white bg-rose-500 rounded-full shadow-[0_2px_0_#BE123C] active:translate-y-0.5 active:shadow-none transition-all uppercase tracking-wide flex items-center gap-1"
             >
+              <LogOut className="w-3 h-3" />
               Salir
             </button>
           )}
