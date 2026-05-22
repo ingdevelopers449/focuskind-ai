@@ -2,6 +2,55 @@ import React, { useState } from "react";
 import { X, Sparkles, Star, Trophy, Mail, Lock, User, Smile, ShieldCheck, Heart, Phone, School, GraduationCap, Brain, Eye, EyeOff } from "lucide-react";
 import { AgeGroup } from "../types";
 import { supabaseService, getSuperAdminEmail } from "../lib/supabase";
+import { z } from "zod";
+
+// Zod Validation and Sanitization Schemas to prevent SQL Injection, Buffer Overflows and bad inputs
+export const authSchema = z.object({
+  email: z
+    .string()
+    .email("El formato del correo electrónico no es válido.")
+    .max(255, "El correo electrónico es demasiado largo.")
+    .transform((val) => val.trim().toLowerCase()),
+  password: z
+    .string()
+    .min(8, "La contraseña debe tener al menos 8 caracteres.")
+    .max(72, "La contraseña excede el límite seguro permitido para el hashing.")
+});
+
+export const registerStep1Schema = z.object({
+  email: z
+    .string()
+    .email("El formato del correo electrónico no es válido.")
+    .max(255, "El correo electrónico es demasiado largo.")
+    .transform((val) => val.trim().toLowerCase()),
+  password: z
+    .string()
+    .min(8, "La contraseña secreta debe tener al menos 8 caracteres.")
+    .max(72, "La contraseña excede el límite seguro permitido para el hashing."),
+  confirmPassword: z.string(),
+  contactPhone: z
+    .string()
+    .min(7, "El número de contacto debe tener al menos 7 dígitos.")
+    .max(25, "El número de contacto es demasiado largo.")
+    .transform((val) => val.trim())
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "¡Las contraseñas no coinciden! Por favor verifícalas.",
+  path: ["confirmPassword"]
+});
+
+export const registerStep2Schema = z.object({
+  childName: z
+    .string()
+    .min(2, "El nombre de tu súper estudiante debe tener al menos 2 caracteres.")
+    .max(100, "El nombre es demasiado largo.")
+    .transform((val) => val.trim()),
+  schoolName: z
+    .string()
+    .min(2, "La escuela o colegio debe tener al menos 2 caracteres.")
+    .max(150, "El nombre del colegio es demasiado largo.")
+    .transform((val) => val.trim())
+});
+
 
 export interface AuthModalProps {
   isOpen: boolean;
@@ -91,32 +140,27 @@ export default function AuthModal({ isOpen, onClose, initialMode, onRegisterSucc
   const handleRegisterNext = async (e: React.FormEvent) => {
     e.preventDefault();
     setRegisterError("");
+    
     if (step === 1) {
-      const trimmedEmail = email.trim().toLowerCase();
-      const trimmedPassword = password.trim();
-      const trimmedConfirm = confirmPassword.trim();
-      const trimmedPhone = contactPhone.trim();
+      // 1. Zod schema validation & sanitization for Step 1
+      const validation = registerStep1Schema.safeParse({
+        email,
+        password,
+        confirmPassword,
+        contactPhone
+      });
 
-      if (!trimmedEmail) {
-        setRegisterError("¡Por favor ingresa el correo del tutor!");
-        return;
-      }
-      if (!trimmedPhone) {
-        setRegisterError("¡Por favor ingresa un número celular de contacto!");
-        return;
-      }
-      if (!trimmedPassword || trimmedPassword.length < 6) {
-        setRegisterError("¡La contraseña secreta debe tener por lo menos 6 caracteres!");
-        return;
-      }
-      if (trimmedPassword !== trimmedConfirm) {
-        setRegisterError("¡Las contraseñas no coinciden! Por favor verifícalas.");
+      if (!validation.success) {
+        // Opacify internal database errors and show clean user-friendly Zod messages
+        const errMsg = validation.error.issues[0]?.message || "Datos del tutor inválidos.";
+        setRegisterError(errMsg);
         return;
       }
 
+      const sanitizedData = validation.data;
       setIsSubmitting(true);
       try {
-        const existing = await supabaseService.getTutor(trimmedEmail);
+        const existing = await supabaseService.getTutor(sanitizedData.email);
         if (existing) {
           setRegisterError("¡El correo electrónico ya se encuentra registrado. Por favor utiliza un correo diferente u opta por iniciar sesión!");
           setIsSubmitting(false);
@@ -125,27 +169,33 @@ export default function AuthModal({ isOpen, onClose, initialMode, onRegisterSucc
         setStep(2);
       } catch (err) {
         console.error("Error al validar registro:", err);
+        setRegisterError("Ocurrió un error al validar tus datos. Por favor reintenta.");
       } finally {
         setIsSubmitting(false);
       }
     } else {
-      if (!childName.trim()) {
-        setRegisterError("¡Por favor dinos el nombre de tu súper estudiante!");
+      // 2. Zod schema validation & sanitization for Step 2 child details
+      const validation = registerStep2Schema.safeParse({
+        childName,
+        schoolName
+      });
+
+      if (!validation.success) {
+        const errMsg = validation.error.issues[0]?.message || "Datos del estudiante inválidos.";
+        setRegisterError(errMsg);
         return;
       }
-      if (!schoolName.trim()) {
-        setRegisterError("¡Por favor dinos en qué escuela o colegio estudia!");
-        return;
-      }
+
+      const sanitizedData = validation.data;
       setIsDone(true);
       if (onRegisterSuccess) {
         onRegisterSuccess({
           email: email.trim().toLowerCase(),
           password: password.trim(),
-          contactPhone,
-          schoolName,
+          contactPhone: contactPhone.trim(),
+          schoolName: sanitizedData.schoolName,
           hasTdah,
-          childName,
+          childName: sanitizedData.childName,
           childAge,
           childGrade,
           difficultSubject,
@@ -158,40 +208,47 @@ export default function AuthModal({ isOpen, onClose, initialMode, onRegisterSucc
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
-    const trimmedEmail = email.trim().toLowerCase();
-    const trimmedPassword = password.trim();
 
-    if (!trimmedEmail || !trimmedPassword) {
-      setLoginError("¡Por favor ingresa tu correo y contraseña secreta!");
+    // Zod schema validation & sanitization for Login inputs
+    const validation = authSchema.safeParse({
+      email,
+      password
+    });
+
+    if (!validation.success) {
+      const errMsg = validation.error.issues[0]?.message || "Credenciales inválidas.";
+      setLoginError(errMsg);
       return;
     }
 
+    const sanitizedData = validation.data;
     setIsSubmitting(true);
     try {
-      // Authenticate via Supabase Auth (or simulated check if Supabase is offline)
-      const authResult = await supabaseService.signIn(trimmedEmail, trimmedPassword);
+      // Authenticate via Supabase Auth. Safe parameterized query internal to client.
+      const authResult = await supabaseService.signIn(sanitizedData.email, sanitizedData.password);
       
       if (!authResult.success) {
-        setLoginError(authResult.error || "Contraseña secreta incorrecta o usuario no registrado.");
+        // Opacified error for absolute security by design
+        setLoginError("Credenciales incorrectas o cuenta no registrada. Por favor verifícalas.");
         return;
       }
 
-      const isSuperAdmin = trimmedEmail === getSuperAdminEmail();
+      const isSuperAdmin = sanitizedData.email === getSuperAdminEmail();
 
       if (isSuperAdmin) {
         onClose();
         if (onLoginSuccess) {
-          onLoginSuccess(trimmedEmail, trimmedPassword);
+          onLoginSuccess(sanitizedData.email, sanitizedData.password);
         }
       } else {
         setIsDone(true);
         if (onLoginSuccess) {
-          onLoginSuccess(trimmedEmail, trimmedPassword);
+          onLoginSuccess(sanitizedData.email, sanitizedData.password);
         }
       }
     } catch (err) {
       console.error("Login verify error:", err);
-      setLoginError("Fallo interno al verificar las credenciales.");
+      setLoginError("Error en la autenticación: Credenciales incorrectas.");
     } finally {
       setIsSubmitting(false);
     }
