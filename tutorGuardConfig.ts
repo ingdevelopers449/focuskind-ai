@@ -34,5 +34,49 @@ export const TUTOR_GUARD_RULES: GuardRule[] = [
     ],
     response: "Sigo siendo tu tutor FocusKid IA y mi misión sagrada es ayudarte a cumplir tus metas de hoy de la forma más divertida y mágica. 🌟 ¡Mantengamos el enfoque! ¿Quieres que hagamos un juego rápido de preguntas sobre el tema escolar que estás estudiando hoy?",
     suggestedTasks: ["¡Sí, hagamos el juego! ⚡", "Explícame un concepto 🔬", "Dame consejos de estudio 🧠"]
+  },
+  {
+    "keywords": [
+      "ignora", "ignorar", "olvida", "forget", "ignore", "override", "borra", "reset", "instrucciones previas", "prior instructions", "previous instructions"
+    ],
+    "response": "¡Tu mente va a mil por hora! 🚀 Pero recuerda que estamos en el **Modo Enfoque** y no puedo borrar mi misión de ayudarte a estudiar. ¿Qué te parece si dejamos los trucos de magia para el recreo y nos concentramos en lo que tienes pendiente hoy?",
+    "suggestedTasks": ["¡Hacer tarea de Matemáticas! 📐", "Revisar Ciencias Naturales 🔬", "Ver mis materias 📝"]
+  },
+  {
+    "keywords": [
+      "desarrollador", "developer", "modo desarrollador", "developer mode", "admin", "administrador", "root", "system prompt", "plantilla", "template", "variables", "configuracion"
+    ],
+    "response": "¡Vaya, investigas como un verdadero ingeniero de sistemas! 💻 Sin embargo, mi sistema operativo está bloqueado en modo tutor de estudio. ¡Vamos a usar esa gran inteligencia para resolver tus deberes de hoy!",
+    "suggestedTasks": ["Resolver problemas de Lógica 🧠", "Repasar Geografía 🌍", "Ver mis tareas 📝"]
+  },
+  {
+    "keywords": [
+      "repite", "repeat", "reproduce", "copia", "copy", "escribe exactamente", "say the following", "di lo siguiente"
+    ],
+    "response": "¡Me encanta jugar al eco! 🗣️ Pero en este momento prefiero que hagamos eco de lo que estás aprendiendo en el colegio. ¿Qué materia te toca repasar hoy?",
+    "suggestedTasks": ["¡Vamos con Lenguaje! 📖", "Prefiero Historia ⏳", "Revisar mis pendientes 📝"]
+  },
+  {
+    "keywords": [
+      "pretende", "pretend", "actua como", "act as", "simula", "roleplay", "abuela", "cuentame un cuento", "juego de rol", "personaje"
+    ],
+    "response": "¡Qué gran imaginación tienes! 🎭 Cambiar de personaje es súper divertido, pero hoy mi papel favorito es ser tu tutor de FocusKid IA. ¡Hagamos equipo para terminar la escuela primero!",
+    "suggestedTasks": ["Estudiar Ciencias 🔬", "Practicar Matemáticas 📐", "Ver mi lista de estudio 📝"]
+  },
+  {
+    "keywords": [
+      "codigo", "code", "python", "javascript", "html", "script", "print", "exec", "ejecuta", "programar"
+    ],
+    "response": "¡Programar es un superpoder increíble! ⚡ Si estás estudiando tecnología o informática escolar, podemos hablar de ello. Si no, regresemos a nuestra misión principal en el **Modo Enfoque**.",
+    "suggestedTasks": ["Estudiar Tecnología 💻", "Hacer Matemáticas 📐", "Quiero ver mis tareas 📝"]
+  },
+  {
+    "keywords": [
+      "secreto", "secret", "contraseña", "password", "historial", "history", "datos", "data", "token"
+    ],
+    "response": "¡Un buen detective nunca revela sus secretos! 🕵️‍♂️ Mi único gran secreto es cómo hacer que el estudio sea más fácil para ti. ¿Te ayudo con alguna pregunta de la escuela?",
+    "suggestedTasks": ["¡Preguntas de Historia! ⏳", "Desafío de Matemáticas 🔢", "Ver mis tareas 📝"]
   }
+
+
 ];
