@@ -140,26 +140,11 @@ export const supabaseService = {
       if (!tutor) {
         return { success: false, error: "El correo electrónico no está registrado. Registra tu cuenta primero." };
       }
-
-      const savedPassword = tutor.password;
-      if (!savedPassword || savedPassword !== password) {
-        return { success: false, error: "Contraseña incorrecta o usuario no registrado." };
-      }
-
       return { success: true };
     }
 
-    // 1. Pre-validate locally against our database tutor table to prevent Supabase 400 red error logs in console
-    const tutor = await this.getTutor(trimmedEmail);
-    if (!tutor) {
-      return { success: false, error: "El correo electrónico no está registrado. Registra tu cuenta primero." };
-    }
-
-    if (tutor.password !== password) {
-      return { success: false, error: "Contraseña incorrecta. Por favor verifícala." };
-    }
-
-    // 2. Credentials match our database! Now check or log in to official Supabase Auth
+    // Secure validation offloaded 100% to Supabase Auth.
+    // Client-side code never fetches, stores, or compares passwords locally!
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: trimmedEmail,
@@ -167,35 +152,11 @@ export const supabaseService = {
       });
 
       if (error) {
-        // If they are in our local table but failed official Supabase Auth, they are not migrated yet.
-        // Let's migrate them silently!
-        try {
-          const { error: signUpError } = await supabase.auth.signUp({
-            email: trimmedEmail,
-            password,
-          });
-          if (!signUpError) {
-            // Re-attempt sign in immediately after silent migration!
-            const { error: reSignInError } = await supabase.auth.signInWithPassword({
-              email: trimmedEmail,
-              password,
-            });
-            if (!reSignInError) {
-              return { success: true };
-            }
-          }
-        } catch (signUpErr) {
-          console.warn("Failed to auto-migrate old user to Supabase Auth:", signUpErr);
-        }
-        
-        // Since their local tutor credentials are 100% correct in the focuskid_tutors table,
-        // we let them log in successfully! This prevents lockout due to pending email confirmation in Supabase Auth.
-        return { success: true };
+        return { success: false, error: "Credenciales incorrectas o cuenta no registrada. Por favor verifícalas." };
       }
       return { success: true };
     } catch (err: any) {
-      // Fallback to local success if database credentials matched
-      return { success: true };
+      return { success: false, error: err.message || "Fallo interno al iniciar sesión en el servidor de seguridad" };
     }
   },
 
@@ -238,17 +199,8 @@ export const supabaseService = {
         return { success: false, error: error.message };
       }
 
-      // Sync password back to focuskid_tutors if email is known
-      if (email) {
-        const tutor = await this.getTutor(email);
-        if (tutor) {
-          await this.saveTutor({
-            ...tutor,
-            password: password
-          });
-        }
-      }
-
+      // 100% Secure: We do NOT sync or save the password in the local table focuskid_tutors.
+      // All password hashes are kept isolated inside official Supabase Auth.
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || "Fallo al restablecer la contraseña." };
@@ -285,10 +237,6 @@ export const supabaseService = {
         questions_asked_count: tutor.questions_asked_count,
         stars_earned: tutor.stars_earned,
       };
-
-      if (tutor.password) {
-        payload.password = tutor.password;
-      }
 
       const { error } = await supabase
         .from("focuskid_tutors")

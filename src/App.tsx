@@ -203,7 +203,6 @@ export default function App() {
     if (!isOwner) {
       await supabaseService.saveTutor({
         email: data.email,
-        password: data.password || "123456",
         contact_phone: data.contactPhone,
         school_name: data.schoolName,
         has_tdah: !!data.hasTdah,
