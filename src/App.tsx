@@ -557,6 +557,8 @@ export default function App() {
                     activePlan={activePlan}
                     onUpgradeClick={() => setIsCheckoutOpen(true)}
                     questionsAskedCount={questionsAskedCount}
+                    userEmail={userEmail}
+                    isLoggedIn={isLoggedIn}
                   />
                 )}
                 {activeWorkspaceTab === "admin" && (

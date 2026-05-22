@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   BarChart2, 
   User, 
@@ -20,6 +20,7 @@ import {
   Award
 } from "lucide-react";
 import { DemoConfig } from "../types";
+import { supabaseService, getSuperAdminEmail } from "../lib/supabase";
 
 interface ParentDashboardProps {
   demoConfig: DemoConfig;
@@ -27,6 +28,8 @@ interface ParentDashboardProps {
   activePlan: "free" | "premium";
   onUpgradeClick: () => void;
   questionsAskedCount: number;
+  userEmail?: string;
+  isLoggedIn?: boolean;
 }
 
 export default function ParentDashboard({ 
@@ -34,23 +37,101 @@ export default function ParentDashboard({
   setDemoConfig, 
   activePlan, 
   onUpgradeClick,
-  questionsAskedCount 
+  questionsAskedCount,
+  userEmail,
+  isLoggedIn = false
 }: ParentDashboardProps) {
   const [tdahActive, setTdahActive] = useState(demoConfig.hasTdah || false);
   const [activeTab, setActiveTab] = useState<"overview" | "reports" | "billing">("overview");
 
-  const toggleTdah = () => {
+  const [realStars, setRealStars] = useState(0);
+  const [realStreak, setRealStreak] = useState(1);
+  const [recentQuestions, setRecentQuestions] = useState<any[]>([]);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+
+  // Sync toggle when config changes
+  useEffect(() => {
+    setTdahActive(demoConfig.hasTdah || false);
+  }, [demoConfig.hasTdah]);
+
+  // Load real-time parent metrics from Supabase
+  useEffect(() => {
+    if (!isLoggedIn || !userEmail) {
+      // Fallback defaults for guest/demo view
+      setRealStars(25 + (questionsAskedCount * 5));
+      setRealStreak(1);
+      setTotalQuestions(questionsAskedCount);
+      setRecentQuestions([]);
+      return;
+    }
+
+    const fetchParentData = async () => {
+      try {
+        const profile = await supabaseService.getTutor(userEmail);
+        if (profile) {
+          if (typeof profile.stars_earned === "number") {
+            setRealStars(profile.stars_earned);
+          }
+          if (profile.created_at) {
+            const createdDate = new Date(profile.created_at);
+            const today = new Date();
+            createdDate.setHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0);
+            const diffTime = today.getTime() - createdDate.getTime();
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            setRealStreak(Math.max(1, diffDays));
+          }
+        }
+
+        const history = await supabaseService.getChatHistory(userEmail);
+        if (history) {
+          const userQuestions = history
+            .filter((item: any) => item.role === "user")
+            .map((item: any) => ({
+              id: item.id,
+              text: item.content,
+              date: item.created_at ? new Date(item.created_at) : new Date(),
+              subject: item.subject || "general"
+            }))
+            .reverse(); // Most recent first
+          
+          setRecentQuestions(userQuestions.slice(0, 3));
+          setTotalQuestions(userQuestions.length);
+        }
+      } catch (err) {
+        console.error("Failed to load parent dashboard data from Supabase:", err);
+      }
+    };
+
+    fetchParentData();
+  }, [isLoggedIn, userEmail, questionsAskedCount]);
+
+  const toggleTdah = async () => {
     const newVal = !tdahActive;
     setTdahActive(newVal);
     setDemoConfig(prev => ({
       ...prev,
       hasTdah: newVal
     }));
+
+    if (isLoggedIn && userEmail && userEmail.toLowerCase() !== getSuperAdminEmail().toLowerCase()) {
+      try {
+        const currentProfile = await supabaseService.getTutor(userEmail);
+        if (currentProfile) {
+          await supabaseService.saveTutor({
+            ...currentProfile,
+            has_tdah: newVal
+          });
+        }
+      } catch (err) {
+        console.error("Error saving TDAH clinic status to Supabase:", err);
+      }
+    }
   };
 
   // Dynamic parameters calculated based on child details
-  const starsEarned = 25 + (questionsAskedCount * 5);
-  const totalStudyMinutes = Math.round(15 + (questionsAskedCount * 2.5));
+  const starsEarned = realStars;
+  const totalStudyMinutes = isLoggedIn ? Math.round(15 + (totalQuestions * 3)) : Math.round(15 + (questionsAskedCount * 2.5));
   const focusPercentage = demoConfig.hasTdah ? "82% (Enfoque TDAH)" : "94% (Foco Estable)";
   const levelText = starsEarned > 50 ? "Nivel 3 - Explorador Brillante" : starsEarned > 35 ? "Nivel 2 - Aprendiz Entusiasta" : "Nivel 1 - Iniciado";
 
@@ -212,29 +293,50 @@ export default function ParentDashboard({
                 </div>
 
                 <div className="bg-[#FFFBEB] px-4 py-2 border-2 border-[#F59E0B] rounded-full text-xs font-black text-[#B45309]">
-                  Total Consultas: {questionsAskedCount}
+                  Total Consultas: {isLoggedIn ? totalQuestions : questionsAskedCount}
                 </div>
               </div>
 
-              {questionsAskedCount === 0 ? (
+              {(isLoggedIn ? totalQuestions : questionsAskedCount) === 0 ? (
                 <div className="text-center py-8 text-slate-400 font-bold space-y-2">
                   <div className="text-4xl">🌵</div>
-                  <p className="text-slate-500 text-sm">Aún no se registran preguntas de de Foli hoy.</p>
-                  <p className="text-xs text-slate-400 font-normal">Haz preguntas en el panel "Tutor Foli (Demo)" arriba para ver las métricas en tiempo real aquí.</p>
+                  <p className="text-slate-500 text-sm">Aún no se registran preguntas de Foli hoy.</p>
+                  <p className="text-xs text-slate-400 font-normal">Haz preguntas en el panel "Tutor Foli" arriba para ver las métricas en tiempo real aquí.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-slate-50 p-4 border-2 border-slate-200 rounded-2xl flex items-center justify-between text-xs">
-                      <div className="text-left">
-                        <span className="text-[10px] text-[#3B82F6] font-black uppercase block">CONSULTA RECIENTE</span>
-                        <p className="font-black text-[#1E293B] mt-0.5 truncate max-w-[200px]" title="Explicación interactiva del tema del día">Pregunta activa hecha al Zorrito Foli</p>
-                        <span className="text-[10px] text-slate-400 font-bold">Hace unos minutos</span>
+                    {isLoggedIn && recentQuestions.length > 0 ? (
+                      recentQuestions.slice(0, 2).map((q, idx) => (
+                        <div key={q.id || idx} className="bg-slate-50 p-4 border-2 border-slate-200 rounded-2xl flex items-center justify-between text-xs">
+                          <div className="text-left">
+                            <span className="text-[10px] text-[#3B82F6] font-black uppercase block">
+                              CONSULTA RECIENTE ({q.subject === "science" ? "CIENCIAS" : q.subject === "math" ? "MATEMÁTICAS" : q.subject === "history" ? "HISTORIA" : q.subject === "art" ? "MODO CREATIVO" : q.subject === "languages" ? "IDIOMAS" : "GENERAL"})
+                            </span>
+                            <p className="font-black text-[#1E293B] mt-0.5 truncate max-w-[200px]" title={q.text}>
+                              "{q.text}"
+                            </p>
+                            <span className="text-[10px] text-slate-400 font-bold">
+                              {new Date(q.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <span className="bg-emerald-100 text-emerald-800 border border-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase shrink-0">
+                            Comprensión Alta ✅
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="bg-slate-50 p-4 border-2 border-slate-200 rounded-2xl flex items-center justify-between text-xs">
+                        <div className="text-left">
+                          <span className="text-[10px] text-[#3B82F6] font-black uppercase block">CONSULTA RECIENTE</span>
+                          <p className="font-black text-[#1E293B] mt-0.5 truncate max-w-[200px]" title="Explicación interactiva del tema del día">Pregunta activa hecha al Zorrito Foli</p>
+                          <span className="text-[10px] text-slate-400 font-bold">Hace unos minutos</span>
+                        </div>
+                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase">
+                          Comprensión Alta ✅
+                        </span>
                       </div>
-                      <span className="bg-emerald-100 text-emerald-800 border border-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase">
-                        Comprensión Alta ✅
-                      </span>
-                    </div>
+                    )}
 
                     <div className="bg-slate-50 p-4 border-2 border-slate-200 rounded-2xl flex items-center justify-between text-xs">
                       <div className="text-left">
@@ -242,8 +344,8 @@ export default function ParentDashboard({
                         <p className="font-black text-[#1E293B] mt-0.5">Reto de Estrellas Foli</p>
                         <span className="text-[10px] text-slate-400 font-bold">Hoy</span>
                       </div>
-                      <span className="bg-blue-100 text-blue-800 border border-blue-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase">
-                        +10 Estrellas ⭐
+                      <span className="bg-blue-100 text-blue-800 border border-blue-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase shrink-0">
+                        +{isLoggedIn && realStars > 0 ? realStars : 10} Estrellas ⭐
                       </span>
                     </div>
                   </div>
@@ -262,7 +364,7 @@ export default function ParentDashboard({
                   <Lightbulb className="w-8 h-8" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-[#1E293B]">Estrategia Pedagógica Generada por Gemini AI 🤫</h3>
+                  <h3 className="text-2xl font-black text-[#1E293B]">Estrategia Pedagógica Generada por Llama AI 🤫</h3>
                   <p className="text-slate-400 text-xs font-bold">Reporte de Inteligencia Artificial enfocado en {schoolGradeStr}</p>
                 </div>
               </div>
