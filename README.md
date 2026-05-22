@@ -1,24 +1,36 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# FocusKid AI 📚
 
-# Run and deploy your AI Studio app
+Portal interactivo de estudio adaptativo para niños con soporte para TDAH, impulsado por Inteligencia Artificial y sincronización en la nube mediante Supabase.
 
-This contains everything you need to run your app locally.
+## Características 🌟
+- **Tutor Interactivo Adaptativo (Zorrito Foli)**: Responde dudas, asigna retos y adecua las analogías de aprendizaje según los gustos del menor (espacio, dinosaurios, videojuegos, magia).
+- **Enfoque Pedagógico TDAH**: Respuestas estructuradas, temporizadores de concentración y refuerzo positivo con estrellas ganadas.
+- **Panel de Control Familiar (Padres)**: Monitoreo de progreso y personalización del ritmo escolar.
+- **SuperAdmin Panel**: Control total del negocio, métricas de retención y administración de cuentas.
 
-View your app in AI Studio: https://ai.studio/apps/0f7aa544-2e12-4a4b-9de7-445d15b8520e
+## Configuración y Ejecución Local 🛠️
 
-## Run Locally
+**Prerrequisitos:** Node.js (v18+) y npm.
 
-**Prerequisites:**  Node.js
+1. **Instalar dependencias:**
+   ```bash
+   npm install
+   ```
 
+2. **Configurar el entorno (.env):**
+   Duplica el archivo `.env.example` como `.env` y configura tus claves:
+   - `GROQ_API_KEY`: Clave de la API de Groq Cloud (Llama 3). Consíguela gratis en [console.groq.com](https://console.groq.com/).
+   - `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`: Credenciales de tu base de datos de Supabase.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+3. **Iniciar el servidor de desarrollo:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Construir para producción:**
+   ```bash
+   npm run build
+   ```
 
 ---
-*Repositorio configurado para desarrollo.*
-
+*FocusKid AI - Acompañamiento Inteligente de Confianza.*

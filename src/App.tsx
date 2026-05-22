@@ -604,7 +604,7 @@ export default function App() {
               <div className="transition-all duration-300">
                 {activeWorkspaceTab === "student" && (
                   <div className="space-y-12">
-                    {/* Live Playground conectado a Gemini API */}
+                    {/* Live Playground conectado a la API de Inteligencia Artificial */}
                     <InteractiveTutor 
                       demoConfig={demoConfig}
                       isLoggedIn={isLoggedIn}

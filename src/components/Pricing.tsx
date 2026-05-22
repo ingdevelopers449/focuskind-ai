@@ -37,7 +37,7 @@ export default function Pricing({ onOpenAuth, isLoggedIn, activePlan, onOpenChec
       price: billingPeriod === "monthly" ? 15000 : 12000,
       description: "El micro-SaaS de estudio diario definitivo con adaptación ilimitada para mejorar sus hábitos.",
       features: [
-        "Consultas directas a Gemini IA ILIMITADAS",
+        "Consultas directas a la IA del Zorrito Foli ILIMITADAS",
         "Personalización de intereses mágicos (Dino, Espacio, etc)",
         "Panel completo de control familiar para Padres",
         "Música binaural de concentración y temporizador",

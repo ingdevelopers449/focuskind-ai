@@ -225,7 +225,7 @@ export default function Hero({ demoConfig, setDemoConfig, onScrollToSection }: H
             </div>
             <h3 className="text-2xl font-black text-[#1E1B4B]">Control Absoluto del Tutor</h3>
             <p className="text-indigo-950 font-medium text-xs leading-relaxed max-w-2xl">
-              Nuestra plataforma funciona con la API de Gemini mediante servidores full-stack seguros, garantizando que ninguna clave secreta se exponga al navegador. Los datos de contacto del colegio del menor y el teléfono del acudiente permanecen cifrados de forma segura, y puedes restablecer la información almacenada en cualquier momento cerrando tu sesión.
+              Nuestra plataforma funciona con la API de Groq Cloud mediante servidores full-stack seguros, garantizando que ninguna clave secreta se exponga al navegador. Los datos de contacto del colegio del menor y el teléfono del acudiente permanecen cifrados de forma segura, y puedes restablecer la información almacenada en cualquier momento cerrando tu sesión.
             </p>
           </div>
           <div className="lg:col-span-4 flex justify-center">

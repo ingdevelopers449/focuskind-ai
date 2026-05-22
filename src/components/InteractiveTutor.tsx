@@ -264,7 +264,7 @@ export default function InteractiveTutor({
       
       const errorMessageText = error.message && error.message !== "Falla de API"
         ? `🦊 ¡Uuups! Foli se ha topado con un inconveniente técnico:\n\n${error.message}`
-        : `¡Uuups! 🦊💥 Mi antenita de sabiduría se ha cruzado con una ráfaga de viento galáctica. Tu API Key de Gemini se está configurando de forma segura. Asegúrate de tener tu clave configurada en el panel de Secrets.\n\nMientras tanto, ¡sigamos practicando! ¿Tienes otra duda o quieres volver a intentar?`;
+        : `¡Uuups! 🦊💥 Mi antenita de sabiduría se ha cruzado con una ráfaga de viento galáctica. Tu API Key de Groq o servidor de Inteligencia Artificial se está configurando de forma segura. Asegúrate de tener tu clave configurada en las variables de entorno de tu proyecto en Vercel.\n\nMientras tanto, ¡sigamos practicando! ¿Tienes otra duda o quieres volver a intentar?`;
 
       setMessages((prev) => [
         ...prev,

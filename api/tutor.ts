@@ -209,9 +209,10 @@ Directrices de formato para Llama:
       errorDetail = "Has alcanzado los límites de tokens o consultas en tu cuenta de Groq. Si usas la capa gratuita, espera un minuto e intenta de nuevo.";
     }
 
-    res.status(500).json({
-      error: errorMessage,
-      detail: errorDetail
+    // Return a friendly 200 response with explanation instead of breaking the app with a 500 error
+    res.status(200).json({
+      text: `🦊 **¡Uuups! Foli se ha topado con un inconveniente técnico de conexión:**\n\n${errorMessage}\n\n**Detalle:** \`${errorDetail}\`\n\n💡 **¿Cómo solucionarlo?**\nSi eres el tutor, asegúrate de que la clave de API de Groq Cloud (\`GROQ_API_KEY\`) esté correctamente configurada en las variables de entorno de tu proyecto en Vercel y que hayas redesplegado la aplicación. ¡Una vez configurado, podré ayudarte a estudiar sin problemas!`,
+      suggestedTasks: ["Configurar Vercel 🛠️", "Reintentar 🔄"]
     });
   }
 }

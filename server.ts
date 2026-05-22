@@ -215,9 +215,10 @@ Directrices de formato para Llama:
       errorDetail = "Has alcanzado los límites de tokens o consultas en tu cuenta de Groq. Si usas la capa gratuita, espera un minuto e intenta de nuevo, o configura Ollama en local.";
     }
 
-    res.status(500).json({
-      error: errorMessage,
-      detail: errorDetail
+    // Return a friendly 200 response with explanation instead of breaking the app with a 500 error
+    res.json({
+      text: `🦊 **¡Uuups! Foli se ha topado con un inconveniente técnico de conexión:**\n\n${errorMessage}\n\n**Detalle:** \`${errorDetail}\`\n\n💡 **¿Cómo solucionarlo?**\nAsegúrate de que la clave de API de Groq Cloud (\`GROQ_API_KEY\`) esté correctamente configurada en tu archivo \`.env\` local, o que tu servidor de Ollama esté encendido y configurado si estás usando un proveedor local.`,
+      suggestedTasks: ["Configurar .env 🛠️", "Reintentar 🔄"]
     });
   }
 });
