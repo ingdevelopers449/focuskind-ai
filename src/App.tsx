@@ -84,6 +84,34 @@ export default function App() {
     localStorage.setItem("focuskid_questions_asked_count", String(questionsAskedCount));
   }, [isLoggedIn, userEmail, activePlan, questionsAskedCount]);
 
+  // Fetch real profile data from Supabase on startup if logged in
+  React.useEffect(() => {
+    if (isLoggedIn && userEmail && userEmail.toLowerCase() !== getSuperAdminEmail().toLowerCase()) {
+      const loadProfileOnStartup = async () => {
+        try {
+          const tutorData = await supabaseService.getTutor(userEmail);
+          if (tutorData) {
+            setDemoConfig({
+              childName: tutorData.child_name || "Tomás",
+              ageGroup: (tutorData.child_age || "8-10") as any,
+              theme: tutorData.child_theme || "espacio",
+              hasTdah: !!tutorData.has_tdah,
+              schoolName: tutorData.school_name || "",
+              contactPhone: tutorData.contact_phone || "",
+              childGrade: tutorData.child_grade || "3ro de Primaria",
+              difficultSubject: tutorData.difficult_subject || "Matemáticas 📐",
+            });
+            setActivePlan(tutorData.active_plan || "free");
+            setQuestionsAskedCount(tutorData.questions_asked_count || 0);
+          }
+        } catch (err) {
+          console.error("Error loading startup profile from Supabase:", err);
+        }
+      };
+      loadProfileOnStartup();
+    }
+  }, [isLoggedIn, userEmail]);
+
   const handleOpenAuth = (mode: "login" | "register") => {
     setAuthModalMode(mode);
     setAuthModalOpen(true);

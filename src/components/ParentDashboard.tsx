@@ -96,6 +96,18 @@ export default function ParentDashboard({
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
             setRealStreak(Math.max(1, diffDays));
           }
+
+          // Sync database profile back to parent's demoConfig state
+          setDemoConfig({
+            childName: profile.child_name || "amiguito",
+            ageGroup: (profile.child_age || "8-10") as any,
+            theme: profile.child_theme || "espacio",
+            hasTdah: !!profile.has_tdah,
+            schoolName: profile.school_name || "",
+            contactPhone: profile.contact_phone || "",
+            childGrade: profile.child_grade || "3ro de Primaria",
+            difficultSubject: profile.difficult_subject || "Matemáticas 📐",
+          });
         }
 
         const history = await supabaseService.getChatHistory(userEmail);
