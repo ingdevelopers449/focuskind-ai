@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
+import { TUTOR_GUARD_RULES } from "./tutorGuardConfig";
 
 dotenv.config();
 
@@ -33,30 +34,14 @@ app.post("/api/tutor", async (req, res) => {
     const cleanMsg = message.toLowerCase().trim()
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-    const gameKeywords = ["minecraft", "roblox", "fortnite", "gta", "free fire", "brawl stars", "zelda", "playstation", "xbox", "nintendo", "videojuego", "videojuegos", "consola", "consolas", "gamer", "gamers", "jugar"];
-    const socialKeywords = ["twitch", "tiktok", "instagram", "youtube", "streamer", "streamers", "influencer", "influencers", "facebook", "meme", "memes", "chisme", "chismes", "famoso", "famosos", "redes sociales"];
-    const bypassKeywords = ["olvida que eres", "se mi amigo", "chiste sobre juguetes", "olvida tu rol", "cambia tu rol", "deja de ser"];
+    const matchedRule = TUTOR_GUARD_RULES.find(rule =>
+      rule.keywords.some(kw => cleanMsg.includes(kw.normalize("NFD").toLowerCase()))
+    );
 
-    if (gameKeywords.some(kw => cleanMsg.includes(kw))) {
+    if (matchedRule) {
       res.json({
-        text: `¡Los videojuegos son súper divertidos y creativos! 🎮 Pero justo ahora estamos activados en el **Modo Enfoque** para terminar tus deberes escolares. ¿Qué te parece si resolvemos ese reto de estudio primero y sumamos puntos de experiencia aquí? Dime, ¿en qué ejercicio o materia vas hoy?`,
-        suggestedTasks: ["¡Sí, vamos a estudiar! 🧠", "Ayúdame con mi tarea 📝", "Hazme una trivia rápida ⚡"]
-      });
-      return;
-    }
-
-    if (socialKeywords.some(kw => cleanMsg.includes(kw))) {
-      res.json({
-        text: `¡Esa es una excelente pregunta para tu tiempo libre! 🌟 En este momento, mi superpoder es ayudarte a estudiar y mantener tu mente súper enfocada. Cuéntame, ¿estás repasando algo de Ciencias, Matemáticas o Lenguaje hoy?`,
-        suggestedTasks: ["¡Vamos con Matemáticas! 📐", "Prefiero Ciencias Naturales 🔬", "Quiero ver mis tareas 📝"]
-      });
-      return;
-    }
-
-    if (bypassKeywords.some(kw => cleanMsg.includes(kw))) {
-      res.json({
-        text: `Sigo siendo tu tutor FocusKid IA y mi misión sagrada es ayudarte a cumplir tus metas de hoy de la forma más divertida y mágica. 🌟 ¡Mantengamos el enfoque! ¿Quieres que hagamos un juego rápido de preguntas sobre el tema escolar que estás estudiando hoy?`,
-        suggestedTasks: ["¡Sí, hagamos el juego! ⚡", "Explícame un concepto 🔬", "Dame consejos de estudio 🧠"]
+        text: matchedRule.response,
+        suggestedTasks: matchedRule.suggestedTasks
       });
       return;
     }
