@@ -52,7 +52,7 @@ export default function Hero({ demoConfig, setDemoConfig, onScrollToSection }: H
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-[#3B82F6] text-white font-extrabold text-[#11px] px-4.5 py-2 rounded-full shadow-md uppercase tracking-wider animate-pulse">
               <Sparkles className="w-3.5 h-3.5" />
-              SaaS de Aprendizaje Adaptativo & Sincronización en la Nube
+              Plataforma de Acompañamiento Académico & Enfoque TDAH
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#0F172A] leading-tight">
