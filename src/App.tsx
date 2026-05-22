@@ -43,6 +43,9 @@ export default function App() {
   const [questionsAskedCount, setQuestionsAskedCount] = useState(() => {
     return Number(localStorage.getItem("focuskid_questions_asked_count")) || 0;
   });
+  const [starsEarned, setStarsEarned] = useState(() => {
+    return Number(localStorage.getItem("focuskid_stars_earned")) || 0;
+  });
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<"student" | "parent" | "admin">(() => {
     const email = localStorage.getItem("focuskid_user_email") || "";
@@ -91,9 +94,10 @@ export default function App() {
     localStorage.setItem("focuskid_user_email", userEmail);
     localStorage.setItem("focuskid_active_plan", activePlan);
     localStorage.setItem("focuskid_questions_asked_count", String(questionsAskedCount));
-  }, [isLoggedIn, userEmail, activePlan, questionsAskedCount]);
+    localStorage.setItem("focuskid_stars_earned", String(starsEarned));
+  }, [isLoggedIn, userEmail, activePlan, questionsAskedCount, starsEarned]);
 
-  // Fetch real profile data from Supabase on startup if logged in
+  // Fetch/sync real profile data from Supabase whenever user switches workspace tab or on startup
   React.useEffect(() => {
     if (isLoggedIn && userEmail && userEmail.toLowerCase() !== getSuperAdminEmail().toLowerCase()) {
       const loadProfileOnStartup = async () => {
@@ -112,6 +116,7 @@ export default function App() {
             });
             setActivePlan(tutorData.active_plan || "free");
             setQuestionsAskedCount(tutorData.questions_asked_count || 0);
+            setStarsEarned(tutorData.stars_earned || 0);
           }
         } catch (err) {
           console.error("Error loading startup profile from Supabase:", err);
@@ -119,7 +124,7 @@ export default function App() {
       };
       loadProfileOnStartup();
     }
-  }, [isLoggedIn, userEmail]);
+  }, [isLoggedIn, userEmail, activeWorkspaceTab]);
 
   // Listen for Supabase password recovery redirection events
   React.useEffect(() => {
@@ -193,6 +198,7 @@ export default function App() {
       difficultSubject: data.difficultSubject || "Matemáticas 📐",
     };
     setDemoConfig(newConfig);
+    setStarsEarned(0); // Newly registered user starts with 0 stars
 
     // Call Supabase Auth Registration
     if (data.password) {
@@ -239,6 +245,7 @@ export default function App() {
       });
       setActivePlan(tutorData.active_plan || "free");
       setQuestionsAskedCount(tutorData.questions_asked_count || 0);
+      setStarsEarned(tutorData.stars_earned || 0); // Load real stars from DB on login
     } else {
       // Create new profile dynamically for newly registered logging users
       const defaultConfig = {
@@ -252,6 +259,7 @@ export default function App() {
         difficultSubject: "Matemáticas 📐",
       };
       setDemoConfig(defaultConfig);
+      setStarsEarned(0); // Brand new user starts with 0 stars
       if (!isOwner) {
         await supabaseService.saveTutor({
           email,
@@ -279,12 +287,14 @@ export default function App() {
       setUserEmail("");
       setActivePlan("free");
       setQuestionsAskedCount(0);
+      setStarsEarned(0); // Clear stars on logout
       setActiveWorkspaceTab("student");
       setAuthModalOpen(false); // Safety net: ensure any open auth modals are closed on logout
       localStorage.removeItem("focuskid_is_logged_in");
       localStorage.removeItem("focuskid_user_email");
       localStorage.removeItem("focuskid_active_plan");
       localStorage.removeItem("focuskid_questions_asked_count");
+      localStorage.removeItem("focuskid_stars_earned");
       setDemoConfig({
         childName: "amiguito",
         ageGroup: "8-10",
@@ -553,7 +563,7 @@ export default function App() {
                 ) : (
                   <div className="flex items-center gap-4 shrink-0 z-10">
                     <div className="bg-white/10 backdrop-blur-md border border-white/20 px-6 py-4.5 rounded-[24px] text-center shadow-lg">
-                      <span className="block text-3xl font-black text-amber-300">⭐ {25 + (questionsAskedCount * 5)}</span>
+                      <span className="block text-3xl font-black text-amber-300">⭐ {starsEarned}</span>
                       <span className="text-[10px] uppercase tracking-widest text-[#DBEAFE] font-black">Estrellas Ganadas</span>
                     </div>
                     <div className="bg-white/10 backdrop-blur-md border border-white/20 px-6 py-4.5 rounded-[24px] text-center shadow-lg">
