@@ -22,6 +22,22 @@ export default function Header({
   activeWorkspaceTab = "student"
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAuthClickLocked, setIsAuthClickLocked] = useState(false);
+
+  const handleOpenAuthSafe = (mode: "login" | "register") => {
+    if (isAuthClickLocked) return;
+    onOpenAuth(mode);
+  };
+
+  const handleLogoutClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsAuthClickLocked(true);
+    onLogout();
+    setTimeout(() => {
+      setIsAuthClickLocked(false);
+    }, 450); // Completely locks out touch/click tap-through event racing for 450ms
+  };
 
   const isSuperAdmin = isLoggedIn && userEmail.toLowerCase() === getSuperAdminEmail();
 
@@ -75,14 +91,14 @@ export default function Header({
             {!isLoggedIn ? (
               <>
                 <button
-                  onClick={() => onOpenAuth("login")}
+                  onClick={() => handleOpenAuthSafe("login")}
                   className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-5 py-2.5 rounded-full font-bold text-xs shadow-[0_4px_0_#1D4ED8] active:translate-y-1 active:shadow-none transition-all cursor-pointer flex items-center gap-1"
                 >
                   <Smile className="w-3.5 h-3.5" />
                   Iniciar Sesión
                 </button>
                 <button
-                  onClick={() => onOpenAuth("register")}
+                  onClick={() => handleOpenAuthSafe("register")}
                   className="bg-[#F59E0B] hover:bg-[#D97706] text-white px-5 py-2.5 rounded-full font-bold text-xs shadow-[0_4px_0_#B45309] active:translate-y-1 active:shadow-none transition-all cursor-pointer flex items-center gap-1"
                 >
                   <Rocket className="w-3.5 h-3.5" />
@@ -98,7 +114,7 @@ export default function Header({
                   </span>
                 </div>
                 <button
-                  onClick={onLogout}
+                  onClick={handleLogoutClick}
                   className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-full font-black text-[11px] shadow-[0_3px_0_#BE123C] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer flex items-center gap-1.5 uppercase tracking-wide"
                   title="Cerrar Sesión"
                 >
@@ -139,14 +155,14 @@ export default function Header({
         <div className="flex items-center gap-2 lg:hidden">
           {!isLoggedIn ? (
             <button
-              onClick={() => onOpenAuth("login")}
+              onClick={() => handleOpenAuthSafe("login")}
               className="px-3 py-1 text-xs font-bold text-white bg-[#3B82F6] rounded-full shadow-[0_2px_0_#1D4ED8]"
             >
               Entrar
             </button>
           ) : (
             <button
-              onClick={onLogout}
+              onClick={handleLogoutClick}
               className="px-3 py-1.5 text-xs font-black text-white bg-rose-500 rounded-full shadow-[0_2px_0_#BE123C] active:translate-y-0.5 active:shadow-none transition-all uppercase tracking-wide flex items-center gap-1"
             >
               <LogOut className="w-3 h-3" />
@@ -172,7 +188,7 @@ export default function Header({
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => {
-                    onOpenAuth("login");
+                    handleOpenAuthSafe("login");
                     setMobileMenuOpen(false);
                   }}
                   className="py-2.5 px-4 text-center text-sm font-bold text-indigo-700 bg-white border-2 border-indigo-200 rounded-xl hover:bg-indigo-50 transition-all"
@@ -181,7 +197,7 @@ export default function Header({
                 </button>
                 <button
                   onClick={() => {
-                    onOpenAuth("register");
+                    handleOpenAuthSafe("register");
                     setMobileMenuOpen(false);
                   }}
                   className="py-2.5 px-4 text-center text-sm font-black text-white bg-gradient-to-r from-orange-500 to-yellow-500 rounded-xl hover:shadow-lg transition-all"
