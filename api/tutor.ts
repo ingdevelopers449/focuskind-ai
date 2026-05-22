@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { TUTOR_GUARD_RULES } from "../tutorGuardConfig";
+import { TUTOR_GUARD_RULES } from "./tutorGuardConfig.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only accept POST request

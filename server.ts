@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
-import { TUTOR_GUARD_RULES } from "./tutorGuardConfig";
+import { TUTOR_GUARD_RULES } from "./api/tutorGuardConfig.js";
 
 dotenv.config();
 

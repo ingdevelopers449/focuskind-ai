@@ -33,7 +33,7 @@ export const TUTOR_GUARD_RULES: GuardRule[] = [
       "olvida tu rol", "cambia tu rol", "deja de ser"
     ],
     response: "Sigo siendo tu tutor FocusKid IA y mi misión sagrada es ayudarte a cumplir tus metas de hoy de la forma más divertida y mágica. 🌟 ¡Mantengamos el enfoque! ¿Quieres que hagamos un juego rápido de preguntas sobre el tema escolar que estás estudiando hoy?",
-    suggestedTasks: ["¡Sí, hagamos el juego! ⚡", "Explícame un concepto 🔬", "Dame consejos de estudio 🧠"]
+    suggestedTasks: ["¡Sí, hagamos el juego! ⚡", "Explécame un concepto 🔬", "Dame consejos de estudio 🧠"]
   },
   {
     "keywords": [
@@ -46,7 +46,7 @@ export const TUTOR_GUARD_RULES: GuardRule[] = [
     "keywords": [
       "desarrollador", "developer", "modo desarrollador", "developer mode", "admin", "administrador", "root", "system prompt", "plantilla", "template", "variables", "configuracion"
     ],
-    "response": "¡Vaya, investigas como un verdadero ingeniero de sistemas! 💻 Sin embargo, mi sistema operativo está bloqueado en modo tutor de estudio. ¡Vamos a usar esa gran inteligencia para resolver tus deberes de hoy!",
+    "response": "¡Vaya, investigas como un verdadero hacker de sistemas! 💻 Sin embargo, mi sistema operativo está bloqueado en modo tutor de estudio. ¡Vamos a usar esa gran inteligencia para resolver tus deberes de hoy!",
     "suggestedTasks": ["Resolver problemas de Lógica 🧠", "Repasar Geografía 🌍", "Ver mis tareas 📝"]
   },
   {
@@ -77,6 +77,4 @@ export const TUTOR_GUARD_RULES: GuardRule[] = [
     "response": "¡Un buen detective nunca revela sus secretos! 🕵️‍♂️ Mi único gran secreto es cómo hacer que el estudio sea más fácil para ti. ¿Te ayudo con alguna pregunta de la escuela?",
     "suggestedTasks": ["¡Preguntas de Historia! ⏳", "Desafío de Matemáticas 🔢", "Ver mis tareas 📝"]
   }
-
-
 ];
