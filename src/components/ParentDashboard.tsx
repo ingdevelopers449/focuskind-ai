@@ -49,6 +49,21 @@ export default function ParentDashboard({
   const [recentQuestions, setRecentQuestions] = useState<any[]>([]);
   const [totalQuestions, setTotalQuestions] = useState(0);
 
+  // Pagination states for parents chat monitoring
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 4;
+
+  const fakeQuestions = [
+    { id: "fake-1", text: "Pregunta activa hecha al Zorrito Foli", date: new Date(), subject: "math" },
+    { id: "fake-2", text: "¿Por qué brilla el sol? ☀️", date: new Date(), subject: "science" },
+    { id: "fake-3", text: "¿Quién construyó las pirámides? 🔺", date: new Date(), subject: "history" },
+    { id: "fake-4", text: "¿Cómo se mezclan los colores primarios? 🎨", date: new Date(), subject: "art" },
+    { id: "fake-5", text: "¿Cómo se dice 'perro feliz' en inglés? 🐶", date: new Date(), subject: "languages" },
+    { id: "fake-6", text: "¿Qué es la fotosíntesis? 🌿", date: new Date(), subject: "science" },
+    { id: "fake-7", text: "¿Quién fue Leonardo da Vinci? 👨‍🎨", date: new Date(), subject: "art" },
+    { id: "fake-8", text: "¿Por qué el cero es importante? 0️⃣", date: new Date(), subject: "math" }
+  ];
+
   // Sync toggle when config changes
   useEffect(() => {
     setTdahActive(demoConfig.hasTdah || false);
@@ -95,7 +110,7 @@ export default function ParentDashboard({
             }))
             .reverse(); // Most recent first
           
-          setRecentQuestions(userQuestions.slice(0, 3));
+          setRecentQuestions(userQuestions);
           setTotalQuestions(userQuestions.length);
         }
       } catch (err) {
@@ -297,58 +312,75 @@ export default function ParentDashboard({
                 </div>
               </div>
 
-              {(isLoggedIn ? totalQuestions : questionsAskedCount) === 0 ? (
+              {(isLoggedIn ? totalQuestions : fakeQuestions.length) === 0 ? (
                 <div className="text-center py-8 text-slate-400 font-bold space-y-2">
                   <div className="text-4xl">🌵</div>
                   <p className="text-slate-500 text-sm">Aún no se registran preguntas de Foli hoy.</p>
                   <p className="text-xs text-slate-400 font-normal">Haz preguntas en el panel "Tutor Foli" arriba para ver las métricas en tiempo real aquí.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* Grid showing the paginated real or fake questions */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {isLoggedIn && recentQuestions.length > 0 ? (
-                      recentQuestions.slice(0, 2).map((q, idx) => (
-                        <div key={q.id || idx} className="bg-slate-50 p-4 border-2 border-slate-200 rounded-2xl flex items-center justify-between text-xs">
-                          <div className="text-left">
-                            <span className="text-[10px] text-[#3B82F6] font-black uppercase block">
-                              CONSULTA RECIENTE ({q.subject === "science" ? "CIENCIAS" : q.subject === "math" ? "MATEMÁTICAS" : q.subject === "history" ? "HISTORIA" : q.subject === "art" ? "MODO CREATIVO" : q.subject === "languages" ? "IDIOMAS" : "GENERAL"})
-                            </span>
-                            <p className="font-black text-[#1E293B] mt-0.5 truncate max-w-[200px]" title={q.text}>
-                              "{q.text}"
-                            </p>
-                            <span className="text-[10px] text-slate-400 font-bold">
-                              {new Date(q.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          <span className="bg-emerald-100 text-emerald-800 border border-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase shrink-0">
-                            Comprensión Alta ✅
+                    {paginatedQuestions.map((q, idx) => (
+                      <div key={q.id || idx} className="bg-slate-50 p-4 border-2 border-slate-200 rounded-2xl flex items-center justify-between text-xs transition-all hover:border-slate-350 hover:bg-slate-100/50">
+                        <div className="text-left">
+                          <span className="text-[10px] text-[#3B82F6] font-black uppercase block font-sans">
+                            CONSULTA ({q.subject === "science" ? "CIENCIAS" : q.subject === "math" ? "MATEMÁTICAS" : q.subject === "history" ? "HISTORIA" : q.subject === "art" ? "MODO CREATIVO" : q.subject === "languages" ? "IDIOMAS" : "GENERAL"})
+                          </span>
+                          <p className="font-black text-[#1E293B] mt-0.5 truncate max-w-[280px] text-sm" title={q.text}>
+                            "{q.text}"
+                          </p>
+                          <span className="text-[10px] text-slate-400 font-bold font-sans">
+                            {new Date(q.date).toLocaleDateString([], { day: 'numeric', month: 'short' })} • {new Date(q.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
-                      ))
-                    ) : (
-                      <div className="bg-slate-50 p-4 border-2 border-slate-200 rounded-2xl flex items-center justify-between text-xs">
-                        <div className="text-left">
-                          <span className="text-[10px] text-[#3B82F6] font-black uppercase block">CONSULTA RECIENTE</span>
-                          <p className="font-black text-[#1E293B] mt-0.5 truncate max-w-[200px]" title="Explicación interactiva del tema del día">Pregunta activa hecha al Zorrito Foli</p>
-                          <span className="text-[10px] text-slate-400 font-bold">Hace unos minutos</span>
-                        </div>
-                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase">
+                        <span className="bg-emerald-100 text-emerald-800 border border-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase shrink-0 font-sans">
                           Comprensión Alta ✅
                         </span>
                       </div>
-                    )}
-
-                    <div className="bg-slate-50 p-4 border-2 border-slate-200 rounded-2xl flex items-center justify-between text-xs">
-                      <div className="text-left">
-                        <span className="text-[10px] text-[#3B82F6] font-black uppercase block">RETAL LÚDICO</span>
-                        <p className="font-black text-[#1E293B] mt-0.5">Reto de Estrellas Foli</p>
-                        <span className="text-[10px] text-slate-400 font-bold">Hoy</span>
-                      </div>
-                      <span className="bg-blue-100 text-blue-800 border border-blue-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase shrink-0">
-                        +{isLoggedIn && realStars > 0 ? realStars : 10} Estrellas ⭐
-                      </span>
-                    </div>
+                    ))}
                   </div>
+
+                  {/* Ludic Reward summary bar at the bottom */}
+                  <div className="bg-amber-50/50 p-4 border-2 border-amber-200 rounded-2xl flex items-center justify-between text-xs flex-wrap gap-2">
+                    <div className="text-left">
+                      <span className="text-[10px] text-amber-700 font-black uppercase block font-sans">RETAL LÚDICO ACTIVADO</span>
+                      <p className="font-bold text-[#1E293B] text-xs">El menor recibe recompensas automáticas por sus rachas de preguntas académicas en Foli.</p>
+                    </div>
+                    <span className="bg-[#FEF3C7] text-[#B45309] border-2 border-[#FBBF24] px-4 py-1.5 rounded-full text-xs font-black uppercase shrink-0 font-sans">
+                      +{isLoggedIn && realStars > 0 ? realStars : 10} Estrellas Totales ⭐
+                    </span>
+                  </div>
+
+                  {/* Beautiful Pagination controls */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-100 flex-wrap gap-4 font-bold text-xs select-none font-sans">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className={`px-4 py-2.5 border-2 border-slate-200 rounded-xl transition-all shadow-[2px_2px_0_#E2E8F0] active:translate-y-0.5 active:shadow-none cursor-pointer ${
+                          currentPage === 1 ? "opacity-50 cursor-not-allowed bg-slate-50 text-slate-400 shadow-none active:translate-y-0" : "bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                      >
+                        ◀ Anterior
+                      </button>
+                      
+                      <span className="bg-slate-100 border border-slate-200 px-4 py-2 rounded-xl text-slate-600 font-black text-center min-w-[120px]">
+                        Página {currentPage} de {totalPages}
+                      </span>
+                      
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className={`px-4 py-2.5 border-2 border-slate-200 rounded-xl transition-all shadow-[2px_2px_0_#E2E8F0] active:translate-y-0.5 active:shadow-none cursor-pointer ${
+                          currentPage === totalPages ? "opacity-50 cursor-not-allowed bg-slate-50 text-slate-400 shadow-none active:translate-y-0" : "bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                      >
+                        Siguiente ▶
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
