@@ -273,25 +273,29 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUserEmail("");
-    setActivePlan("free");
-    setQuestionsAskedCount(0);
-    setActiveWorkspaceTab("student");
-    localStorage.removeItem("focuskid_is_logged_in");
-    localStorage.removeItem("focuskid_user_email");
-    localStorage.removeItem("focuskid_active_plan");
-    localStorage.removeItem("focuskid_questions_asked_count");
-    setDemoConfig({
-      childName: "amiguito",
-      ageGroup: "8-10",
-      theme: "espacio",
-      hasTdah: false,
-      schoolName: "",
-      contactPhone: "",
-      childGrade: "3ro de Primaria",
-      difficultSubject: "Matemáticas 📐",
-    });
+    // Prevent fast tap-through click racing on re-render with a safe delay
+    setTimeout(() => {
+      setIsLoggedIn(false);
+      setUserEmail("");
+      setActivePlan("free");
+      setQuestionsAskedCount(0);
+      setActiveWorkspaceTab("student");
+      setAuthModalOpen(false); // Safety net: ensure any open auth modals are closed on logout
+      localStorage.removeItem("focuskid_is_logged_in");
+      localStorage.removeItem("focuskid_user_email");
+      localStorage.removeItem("focuskid_active_plan");
+      localStorage.removeItem("focuskid_questions_asked_count");
+      setDemoConfig({
+        childName: "amiguito",
+        ageGroup: "8-10",
+        theme: "espacio",
+        hasTdah: false,
+        schoolName: "",
+        contactPhone: "",
+        childGrade: "3ro de Primaria",
+        difficultSubject: "Matemáticas 📐",
+      });
+    }, 150);
   };
 
   const handlePaymentSuccess = async () => {
