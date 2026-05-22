@@ -23,18 +23,50 @@ export interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, initialMode, onRegisterSuccess, onLoginSuccess }: AuthModalProps) {
-  const [mode, setMode] = useState<"login" | "register">(initialMode);
+  const [mode, setMode] = useState<"login" | "register" | "forgot">(initialMode);
   const [step, setStep] = useState(1);
   const [loginError, setLoginError] = useState("");
   const [registerError, setRegisterError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Forgot password states
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotError, setForgotError] = useState("");
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+
   React.useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
       setStep(1);
+      setForgotError("");
+      setForgotSuccess(false);
     }
   }, [initialMode, isOpen]);
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError("");
+    setForgotSuccess(false);
+
+    if (!forgotEmail.trim()) {
+      setForgotError("¡Por favor ingresa tu correo electrónico!");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const result = await supabaseService.sendPasswordResetEmail(forgotEmail);
+      if (result.success) {
+        setForgotSuccess(true);
+      } else {
+        setForgotError(result.error || "No pudimos enviar el correo de recuperación.");
+      }
+    } catch (err: any) {
+      setForgotError(err.message || "Ocurrió un error inesperado.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -206,36 +238,38 @@ export default function AuthModal({ isOpen, onClose, initialMode, onRegisterSucc
           {!isDone ? (
             <div>
               {/* Login OR Register toggles */}
-              <div className="flex gap-2 p-1.5 bg-[#FEF3C7] rounded-3xl w-fit mx-auto mb-6 border-4 border-[#F59E0B]">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode("login");
-                    setStep(1);
-                  }}
-                  className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
-                    mode === "login"
-                      ? "bg-[#3B82F6] text-white shadow-sm border-2 border-white"
-                      : "text-[#B45309] hover:text-[#1E293B]"
-                  }`}
-                >
-                  Iniciar Sesión
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode("register");
-                    setStep(1);
-                  }}
-                  className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
-                    mode === "register"
-                      ? "bg-[#10B981] text-white shadow-sm border-2 border-white"
-                      : "text-[#B45309] hover:text-[#1E293B]"
-                  }`}
-                >
-                  Registrar Niño
-                </button>
-              </div>
+              {mode !== "forgot" && (
+                <div className="flex gap-2 p-1.5 bg-[#FEF3C7] rounded-3xl w-fit mx-auto mb-6 border-4 border-[#F59E0B]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("login");
+                      setStep(1);
+                    }}
+                    className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+                      mode === "login"
+                        ? "bg-[#3B82F6] text-white shadow-sm border-2 border-white"
+                        : "text-[#B45309] hover:text-[#1E293B]"
+                    }`}
+                  >
+                    Iniciar Sesión
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("register");
+                      setStep(1);
+                    }}
+                    className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+                      mode === "register"
+                        ? "bg-[#10B981] text-white shadow-sm border-2 border-white"
+                        : "text-[#B45309] hover:text-[#1E293B]"
+                    }`}
+                  >
+                    Registrar Niño
+                  </button>
+                </div>
+              )}
 
               {mode === "login" ? (
                 /* LOGIN SCREEN */
@@ -303,9 +337,82 @@ export default function AuthModal({ isOpen, onClose, initialMode, onRegisterSucc
                     <span>{isSubmitting ? "Verificando..." : "Ingresar a mi Cuenta 🛡️"}</span>
                   </button>
 
-                  <p className="text-center text-[10px] text-slate-400 font-bold">
-                    ¿Olvidaste tu contraseña? Escríbenos para asistencia.
-                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("forgot");
+                      setForgotEmail(email); // autofill with whatever they typed
+                      setForgotError("");
+                      setForgotSuccess(false);
+                    }}
+                    className="w-full text-center text-[11px] text-slate-400 hover:text-[#3B82F6] font-extrabold focus:outline-none transition-colors cursor-pointer mt-1"
+                  >
+                    ¿Olvidaste tu contraseña? ¡Recupérala por correo aquí! 📧
+                  </button>
+                </form>
+              ) : mode === "forgot" ? (
+                /* PASSWORD RECOVERY FORM */
+                <form onSubmit={handleForgotSubmit} className="space-y-4">
+                  <div className="text-center space-y-1">
+                    <h3 className="text-xl sm:text-2xl font-black text-[#1E293B]">
+                      Recuperar Contraseña 🔑
+                    </h3>
+                    <p className="text-[#64748B] text-xs font-semibold">
+                      Ingresa tu correo para recibir un enlace seguro de restablecimiento
+                    </p>
+                  </div>
+
+                  <div className="space-y-3.5">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-slate-500 tracking-wider mb-1">
+                        E-mail de tu Cuenta:
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                        <input
+                          type="email"
+                          required
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          placeholder="papa@focuskid.com"
+                          className="w-full pl-11 pr-4 py-3 bg-white border-4 border-slate-200 focus:border-[#3B82F6] outline-none rounded-2xl text-sm font-semibold text-[#1E293B] transition-all"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {forgotError && (
+                    <div className="bg-rose-50 border-4 border-rose-300 text-rose-700 font-extrabold text-xs p-3 rounded-2xl text-center">
+                      ⚠️ {forgotError}
+                    </div>
+                  )}
+
+                  {forgotSuccess && (
+                    <div className="bg-emerald-50 border-4 border-emerald-300 text-emerald-700 font-extrabold text-xs p-3.5 rounded-2xl text-center space-y-1">
+                      <p>✨ ¡Enlace enviado con éxito! ✨</p>
+                      <p className="text-[10px] font-semibold text-emerald-600">Revisa tu correo para cambiar tu contraseña.</p>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full mt-2 py-4 bg-[#10B981] hover:bg-[#059669] disabled:bg-slate-300 disabled:border-slate-400 text-white font-black border-4 border-[#047857] shadow-[0_4px_0_#047857] active:translate-y-0.5 active:shadow-none rounded-2xl tracking-wider uppercase text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>{isSubmitting ? "Enviando Enlace..." : "Enviar Enlace Seguro 📧"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("login");
+                      setForgotError("");
+                      setForgotSuccess(false);
+                    }}
+                    className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs uppercase border-4 border-slate-300 shadow-[0_4px_0_#CBD5E1] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+                  >
+                    Volver al Inicio de Sesión
+                  </button>
                 </form>
               ) : (
                 /* MULTI-STEP CREATION WIZARD */

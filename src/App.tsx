@@ -12,7 +12,7 @@ import CheckoutModal from "./components/CheckoutModal";
 import ParentDashboard from "./components/ParentDashboard";
 import SuperAdminDashboard from "./components/SuperAdminDashboard";
 import { DemoConfig } from "./types";
-import { supabaseService, isSupabaseConfigured, getSuperAdminEmail } from "./lib/supabase";
+import { supabaseService, isSupabaseConfigured, getSuperAdminEmail, supabase } from "./lib/supabase";
 
 export default function App() {
   const [demoConfig, setDemoConfig] = useState<DemoConfig>({
@@ -58,6 +58,15 @@ export default function App() {
   const [parentGateTarget, setParentGateTarget] = useState<"parent" | "admin" | null>(null);
   const [parentGateInput, setParentGateInput] = useState("");
   const [parentGateError, setParentGateError] = useState("");
+
+  // Password Recovery States
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
+  const [resetPasswordInput, setResetPasswordInput] = useState("");
+  const [resetPasswordConfirmInput, setResetPasswordConfirmInput] = useState("");
+  const [resetPasswordShow, setResetPasswordShow] = useState(false);
+  const [resetPasswordError, setResetPasswordError] = useState("");
+  const [resetPasswordSuccess, setResetPasswordSuccess] = useState(false);
+  const [resetPasswordSubmitting, setResetPasswordSubmitting] = useState(false);
 
   const handleSwitchTab = (tab: "student" | "parent" | "admin") => {
     if (tab === "student") {
@@ -111,6 +120,25 @@ export default function App() {
       loadProfileOnStartup();
     }
   }, [isLoggedIn, userEmail]);
+
+  // Listen for Supabase password recovery redirection events
+  React.useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setResetPasswordOpen(true);
+        setResetPasswordError("");
+        setResetPasswordSuccess(false);
+        setResetPasswordInput("");
+        setResetPasswordConfirmInput("");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleOpenAuth = (mode: "login" | "register") => {
     setAuthModalMode(mode);
@@ -703,6 +731,144 @@ export default function App() {
                   className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black border-4 border-indigo-800 shadow-[0_4px_0_#4338CA] active:translate-y-0.5 active:shadow-none rounded-2xl text-xs uppercase"
                 >
                   Confirmar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Restablecer Contraseña Modal */}
+      {resetPasswordOpen && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[60] animate-fade-in">
+          <div className="bg-white rounded-[32px] border-8 border-[#10B981] p-6 sm:p-8 max-w-md w-full text-center space-y-6 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-[#10B981] via-[#FBBF24] to-[#3B82F6]" />
+            
+            <div className="w-20 h-20 rounded-full bg-emerald-50 border-4 border-[#10B981] mx-auto flex items-center justify-center text-4xl">
+              🔑
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="font-extrabold text-2xl text-slate-900">Nueva Contraseña Secreta</h3>
+              <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+                ¡Ingresa tu nueva contraseña secreta de acceso para tu cuenta de tutor!
+              </p>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setResetPasswordError("");
+                setResetPasswordSuccess(false);
+                const passwordVal = resetPasswordInput.trim();
+                const confirmVal = resetPasswordConfirmInput.trim();
+
+                if (!passwordVal || passwordVal.length < 6) {
+                  setResetPasswordError("¡La contraseña secreta debe tener por lo menos 6 caracteres!");
+                  return;
+                }
+                if (passwordVal !== confirmVal) {
+                  setResetPasswordError("¡Las contraseñas no coinciden! Por favor verifícalas.");
+                  return;
+                }
+
+                setResetPasswordSubmitting(true);
+                try {
+                  // Fetch current session user's email to sync to the database tutor table too
+                  const { data: { user } } = await supabase.auth.getUser();
+                  const emailToSync = user?.email || "";
+
+                  const result = await supabaseService.updatePassword(passwordVal, emailToSync);
+                  if (result.success) {
+                    setResetPasswordSuccess(true);
+                    setTimeout(() => {
+                      setResetPasswordOpen(false);
+                      // Auto login locally
+                      if (emailToSync) {
+                        setIsLoggedIn(true);
+                        setUserEmail(emailToSync);
+                        const isOwner = emailToSync.toLowerCase() === getSuperAdminEmail();
+                        setActiveWorkspaceTab(isOwner ? "admin" : "student");
+                      }
+                    }, 2500);
+                  } else {
+                    setResetPasswordError(result.error || "No se pudo actualizar la contraseña.");
+                  }
+                } catch (err: any) {
+                  setResetPasswordError(err.message || "Error al restablecer la contraseña.");
+                } finally {
+                  setResetPasswordSubmitting(false);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-3.5 text-left">
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-slate-500 tracking-wider mb-1">
+                    Nueva Contraseña Secreta:
+                  </label>
+                  <input
+                    type={resetPasswordShow ? "text" : "password"}
+                    value={resetPasswordInput}
+                    onChange={(e) => setResetPasswordInput(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full bg-slate-50 border-4 border-slate-200 focus:border-[#10B981] text-center rounded-2xl px-4 py-3 text-sm font-bold outline-none text-slate-800"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-slate-500 tracking-wider mb-1">
+                    Confirmar Contraseña:
+                  </label>
+                  <input
+                    type={resetPasswordShow ? "text" : "password"}
+                    value={resetPasswordConfirmInput}
+                    onChange={(e) => setResetPasswordConfirmInput(e.target.value)}
+                    placeholder="Repite tu nueva contraseña"
+                    className="w-full bg-slate-50 border-4 border-slate-200 focus:border-[#10B981] text-center rounded-2xl px-4 py-3 text-sm font-bold outline-none text-slate-800"
+                    required
+                  />
+                </div>
+
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setResetPasswordShow(!resetPasswordShow)}
+                    className="text-[10px] font-black text-slate-400 hover:text-slate-600 outline-none uppercase tracking-wider cursor-pointer"
+                  >
+                    {resetPasswordShow ? "Ocultar" : "Mostrar"} Contraseñas
+                  </button>
+                </div>
+              </div>
+
+              {resetPasswordError && (
+                <p className="text-rose-600 font-extrabold text-xs bg-rose-50 border-2 border-rose-300 py-2.5 px-3 rounded-xl">
+                  ⚠️ {resetPasswordError}
+                </p>
+              )}
+
+              {resetPasswordSuccess && (
+                <p className="text-emerald-700 font-extrabold text-xs bg-emerald-50 border-2 border-emerald-300 py-2.5 px-3 rounded-xl">
+                  ✨ ¡Contraseña actualizada con éxito! Redirigiendo...
+                </p>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setResetPasswordOpen(false)}
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 border-4 border-slate-300 text-slate-700 font-bold rounded-2xl text-xs uppercase cursor-pointer"
+                  disabled={resetPasswordSubmitting}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-[#10B981] hover:bg-[#059669] text-white font-black border-4 border-[#047857] shadow-[0_4px_0_#047857] active:translate-y-0.5 active:shadow-none rounded-2xl text-xs uppercase cursor-pointer"
+                  disabled={resetPasswordSubmitting}
+                >
+                  {resetPasswordSubmitting ? "Guardando..." : "Guardar ✨"}
                 </button>
               </div>
             </form>

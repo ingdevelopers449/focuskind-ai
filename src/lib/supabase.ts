@@ -102,7 +102,6 @@ export const supabaseService = {
    */
   async signUp(email: string, password: string): Promise<{ success: boolean; error?: string }> {
     const trimmedEmail = email.trim().toLowerCase();
-    const isSuperAdmin = trimmedEmail === getSuperAdminEmail();
 
     // 1. Check if the user is already registered in our tutor database table
     const tutor = await this.getTutor(trimmedEmail);
@@ -110,62 +109,33 @@ export const supabaseService = {
       return { success: false, error: "El correo ya está registrado. Por favor utiliza otro correo o inicia sesión." };
     }
 
-    // 2. Only Super Admin authenticates with real Supabase Auth
-    if (isSuperAdmin) {
-      if (!isSupabaseConfigured || !supabase) {
-        return { success: true };
-      }
-
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-
-        if (error) {
-          return { success: false, error: error.message };
-        }
-        return { success: true };
-      } catch (err: any) {
-        return { success: false, error: err.message || "Fallo interno al registrar en Supabase Auth" };
-      }
-    } else {
-      // Normal users register in focuskid_tutors directly, we return success here
+    if (!isSupabaseConfigured || !supabase) {
       return { success: true };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Fallo interno al registrar en Supabase Auth" };
     }
   },
 
   /**
-   * Log in - Only Super Admin authenticates via Supabase Auth, others check focuskid_tutors record.
+   * Log in - Authenticates via Supabase Auth for all users if configured.
    */
   async signIn(email: string, password: string): Promise<{ success: boolean; error?: string }> {
     const trimmedEmail = email.trim().toLowerCase();
-    const isSuperAdmin = trimmedEmail === getSuperAdminEmail();
 
-    if (isSuperAdmin) {
-      if (!isSupabaseConfigured || !supabase) {
-        // Fallback local or during dev
-        if (password === "123456") {
-          return { success: true };
-        }
-        return { success: false, error: "Contraseña incorrecta para el Super Admin." };
-      }
-
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          return { success: false, error: error.message };
-        }
-        return { success: true };
-      } catch (err: any) {
-        return { success: false, error: err.message || "Fallo interno al iniciar sesión en Supabase" };
-      }
-    } else {
-      // Normal users: authenticate securely via stored database records (focuskid_tutors)
+    if (!isSupabaseConfigured || !supabase) {
+      // Fallback local or during dev
       const tutor = await this.getTutor(trimmedEmail);
       if (!tutor) {
         return { success: false, error: "El correo electrónico no está registrado. Registra tu cuenta primero." };
@@ -177,6 +147,87 @@ export const supabaseService = {
       }
 
       return { success: true };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        // Fallback to checking the table in case the user was created inside the table only during earlier versions
+        const tutor = await this.getTutor(trimmedEmail);
+        if (tutor && tutor.password === password) {
+          // Register them in Supabase Auth automatically for future standard logins!
+          try {
+            await supabase.auth.signUp({ email, password });
+          } catch (signUpErr) {
+            console.warn("Failed to auto-migrate old user to Supabase Auth:", signUpErr);
+          }
+          return { success: true };
+        }
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Fallo interno al iniciar sesión en Supabase" };
+    }
+  },
+
+  /**
+   * Sends a password reset email using Supabase Auth.
+   */
+  async sendPasswordResetEmail(email: string): Promise<{ success: boolean; error?: string }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, error: "El sistema de base de datos no está disponible actualmente." };
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+        redirectTo: `${window.location.origin}/`,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Fallo interno al enviar el correo de recuperación." };
+    }
+  },
+
+  /**
+   * Updates user password in Supabase Auth and focuskid_tutors profile.
+   */
+  async updatePassword(password: string, email?: string): Promise<{ success: boolean; error?: string }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, error: "El sistema de base de datos no está disponible actualmente." };
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      // Sync password back to focuskid_tutors if email is known
+      if (email) {
+        const tutor = await this.getTutor(email);
+        if (tutor) {
+          await this.saveTutor({
+            ...tutor,
+            password: password
+          });
+        }
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Fallo al restablecer la contraseña." };
     }
   },
 
