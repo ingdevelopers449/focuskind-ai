@@ -155,6 +155,16 @@ export default function ParentDashboard({
   const hardSubjectStr = demoConfig.difficultSubject || "Matemáticas 📐";
   const name = demoConfig.childName || "tu hijo";
 
+  // Pagination parameters for chat history
+  const activeQuestionsList = isLoggedIn ? recentQuestions : fakeQuestions;
+  const totalQuestionsCount = isLoggedIn ? totalQuestions : fakeQuestions.length;
+  
+  const totalPages = Math.ceil(totalQuestionsCount / ITEMS_PER_PAGE);
+  const paginatedQuestions = activeQuestionsList.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    (currentPage - 1) * ITEMS_PER_PAGE + ITEMS_PER_PAGE
+  );
+
   return (
     <section id="dashboard" className="py-20 bg-slate-50 border-b-8 border-[#FDE68A]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

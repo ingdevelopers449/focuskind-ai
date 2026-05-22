@@ -85,6 +85,7 @@ export interface TutorRecord {
   payment_status?: "activo" | "vencido" | "mora";
   questions_asked_count?: number;
   stars_earned?: number;
+  created_at?: string;
 }
 
 export interface ChatRecord {
