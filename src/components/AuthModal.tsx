@@ -345,7 +345,7 @@ export default function AuthModal({ isOpen, onClose, initialMode, onRegisterSucc
                       setForgotError("");
                       setForgotSuccess(false);
                     }}
-                    className="w-full text-center text-[11px] text-slate-400 hover:text-[#3B82F6] font-extrabold focus:outline-none transition-colors cursor-pointer mt-1"
+                    className="w-full text-center text-xs text-[#3B82F6] hover:text-[#1D4ED8] font-black hover:underline focus:outline-none transition-colors cursor-pointer mt-3.5 block"
                   >
                     ¿Olvidaste tu contraseña? ¡Recupérala por correo aquí! 📧
                   </button>
