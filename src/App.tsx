@@ -499,6 +499,20 @@ export default function App() {
             {/* Feature grid detailing kid study features */}
             <Features />
 
+            {/* Live Playground conectado a la API de Inteligencia Artificial */}
+            <InteractiveTutor 
+              demoConfig={demoConfig}
+              isLoggedIn={isLoggedIn}
+              activePlan={activePlan}
+              onUpgradePrompt={() => handleOpenAuth("register")}
+              questionsAskedCount={questionsAskedCount}
+              setQuestionsAskedCount={setQuestionsAskedCount}
+              userEmail={userEmail}
+            />
+
+            {/* Dynamic Study Habits quiz mapping kids answers */}
+            <StudyQuiz />
+
             {/* Interactive subscription schemes & family savings builder */}
             <Pricing 
               onOpenAuth={handleOpenAuth}

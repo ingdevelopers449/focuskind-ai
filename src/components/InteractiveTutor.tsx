@@ -68,6 +68,7 @@ export default function InteractiveTutor({
   const [stars, setStars] = useState(0);
   const [streak, setStreak] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobileStatsOpen, setIsMobileStatsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const getSubjectLabelEs = (sub: Subject) => {
@@ -459,6 +460,104 @@ export default function InteractiveTutor({
           {/* Right chat side: Full-Height */}
           <div className="md:col-span-9 p-4 sm:p-5 flex flex-col justify-between h-full bg-slate-50 overflow-hidden">
             
+            {/* COMPACT MOBILE AGENT HEADER */}
+            <div className="flex flex-col md:hidden shrink-0 mb-3 bg-[#111827] text-white p-3.5 rounded-[24px] border-4 border-[#3B82F6] shadow-md select-none font-sans">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] border-2 border-[#F59E0B] flex items-center justify-center relative overflow-hidden shrink-0">
+                    <span className="text-xl">🦊</span>
+                    <div className="absolute bottom-0 right-0 px-0.5 rounded bg-[#3B82F6] text-white font-black text-[6px] border border-white">
+                      AI
+                    </div>
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-black text-xs text-white leading-tight">Foli</h4>
+                    <span className="text-[9px] text-yellow-300 font-bold uppercase tracking-wider block mt-0.5 leading-none">
+                      {demoConfig.theme === "espacio" ? "🛸 Astronauta" :
+                       demoConfig.theme === "dinosaurios" ? "🦕 Explorador" :
+                       demoConfig.theme === "videojuegos" ? "⛏️ Constructor" : "🔮 Hechicero"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 font-display">
+                  <div className="bg-slate-900 border border-slate-800 px-2 py-1 rounded-full text-[10px] font-black text-yellow-300 flex items-center gap-0.5">
+                    ⭐ {stars}
+                  </div>
+                  <div className="bg-slate-900 border border-slate-800 px-2 py-1 rounded-full text-[10px] font-black text-orange-400 flex items-center gap-0.5 font-sans">
+                    {streak}🔥
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileStatsOpen(!isMobileStatsOpen)}
+                    className="bg-slate-800 border border-slate-700 p-1.5 rounded-xl text-yellow-400 hover:text-white cursor-pointer active:scale-95 transition-all text-[10px] font-black flex items-center justify-center gap-1 font-display"
+                  >
+                    <span>Misiones</span>
+                    <span className="text-[9px]">{isMobileStatsOpen ? "▲" : "▼"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Collapsible panel with Libro de Sabiduría and Clear chat button */}
+              {isMobileStatsOpen && (
+                <div className="mt-3 pt-3 border-t border-slate-800 space-y-3 animate-fade-in text-left">
+                  <div className="bg-slate-950/50 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-850 pb-1.5">
+                      <span className="text-[10px] font-black text-yellow-300 uppercase tracking-wider flex items-center gap-1">
+                        Libro de Sabiduría 📚
+                      </span>
+                    </div>
+                    {recentQuestions.length === 0 ? (
+                      <p className="text-[10px] text-slate-400 italic">No has hecho preguntas aún. ¡Pregúntale a Foli!</p>
+                    ) : (
+                      <div className="flex flex-col gap-1.5">
+                        {recentQuestions.slice(0, 3).map((q) => {
+                          const subjEmoji = q.subject === "science" ? "🔬" :
+                                            q.subject === "math" ? "📐" :
+                                            q.subject === "history" ? "🏰" :
+                                            q.subject === "art" ? "🎨" : "🗣️";
+                          return (
+                            <button
+                              key={q.id}
+                              onClick={() => {
+                                handleSelectRecentQuestion(q);
+                                setIsMobileStatsOpen(false);
+                              }}
+                              className="w-full text-left p-2 rounded-xl bg-slate-900/60 hover:bg-slate-800 border border-slate-800 transition-all text-[10px] font-bold text-slate-200 hover:text-white flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <span className="shrink-0">{subjEmoji}</span>
+                              <span className="truncate">{q.text}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {demoConfig.hasTdah && (
+                    <div className="bg-rose-950/40 border border-rose-900/50 p-2.5 rounded-xl text-center">
+                      <span className="bg-rose-600 border border-rose-400 text-rose-100 text-[9px] font-black px-2.5 py-0.5 rounded-lg inline-block uppercase tracking-wider shadow-sm">
+                        ⚡ APOYO TDAH ACTIVADO
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        handleClearHistory();
+                        setIsMobileStatsOpen(false);
+                      }}
+                      className="flex-1 text-center py-2 bg-slate-900 border border-slate-800 rounded-xl text-[10px] font-black text-slate-300 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Limpiar Historial de Chat
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Subject horizontal select tabs */}
             <div className="flex gap-2.5 overflow-x-auto pb-3 border-b border-slate-200 shrink-0 scrollbar-none">
               {SUBJECT_METADATA.map((subject) => (
@@ -607,7 +706,7 @@ export default function InteractiveTutor({
       <div className="max-w-4xl mx-auto rounded-[40px] border-8 border-[#3B82F6] bg-white shadow-[12px_12px_0_#DBEAFE] overflow-hidden grid grid-cols-1 md:grid-cols-12">
         
         {/* Tutor Side Column (Mascot details & stats) */}
-        <div className="md:col-span-4 bg-[#1E293B] p-6 text-white text-center flex flex-col justify-between border-b-8 md:border-b-0 md:border-r-8 border-[#3B82F6]">
+        <div className="hidden md:flex md:col-span-4 bg-[#1E293B] p-6 text-white text-center flex flex-col justify-between border-b-8 md:border-b-0 md:border-r-8 border-[#3B82F6]">
           
           <div className="space-y-4">
             {/* Custom SVG Avatar representation of "Foli" - high-contrast colors */}
@@ -701,10 +800,108 @@ export default function InteractiveTutor({
         </div>
 
         {/* Chat / Timeline Sandbox */}
-        <div className="md:col-span-8 p-4 sm:p-6 flex flex-col justify-between h-[520px] bg-slate-50">
+        <div className="md:col-span-8 p-4 sm:p-6 flex flex-col justify-between h-[520px] bg-slate-50 overflow-hidden">
           
+          {/* COMPACT MOBILE AGENT HEADER */}
+          <div className="flex flex-col md:hidden shrink-0 mb-3 bg-[#111827] text-white p-3 rounded-[24px] border-4 border-[#3B82F6] shadow-md select-none font-sans">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] border-2 border-[#F59E0B] flex items-center justify-center relative overflow-hidden shrink-0">
+                  <span className="text-xl">🦊</span>
+                  <div className="absolute bottom-0 right-0 px-0.5 rounded bg-[#3B82F6] text-white font-black text-[6px] border border-white">
+                    AI
+                  </div>
+                </div>
+                <div className="text-left">
+                  <h4 className="font-black text-xs text-white leading-tight">Foli</h4>
+                  <span className="text-[9px] text-yellow-300 font-bold uppercase tracking-wider block mt-0.5 leading-none">
+                    {demoConfig.theme === "espacio" ? "🛸 Astronauta" :
+                     demoConfig.theme === "dinosaurios" ? "🦕 Explorador" :
+                     demoConfig.theme === "videojuegos" ? "⛏️ Constructor" : "🔮 Hechicero"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 font-display">
+                <div className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full text-[10px] font-black text-yellow-300 flex items-center gap-0.5">
+                  ⭐ {stars}
+                </div>
+                <div className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full text-[10px] font-black text-orange-400 flex items-center gap-0.5 font-sans">
+                  {streak}🔥
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileStatsOpen(!isMobileStatsOpen)}
+                  className="bg-slate-800 border border-slate-700 p-1.5 rounded-xl text-yellow-400 hover:text-white cursor-pointer active:scale-95 transition-all text-[10px] font-black flex items-center justify-center gap-1 font-display"
+                >
+                  <span>Misiones</span>
+                  <span className="text-[9px]">{isMobileStatsOpen ? "▲" : "▼"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Collapsible panel with Libro de Sabiduría and Clear chat button */}
+            {isMobileStatsOpen && (
+              <div className="mt-3 pt-3 border-t border-slate-800 space-y-3 animate-fade-in text-left">
+                <div className="bg-slate-950/50 p-3 rounded-xl border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between border-b border-slate-850 pb-1.5">
+                    <span className="text-[10px] font-black text-yellow-300 uppercase tracking-wider flex items-center gap-1">
+                      Libro de Sabiduría 📚
+                    </span>
+                  </div>
+                  {recentQuestions.length === 0 ? (
+                    <p className="text-[10px] text-slate-400 italic">No has hecho preguntas aún. ¡Pregúntale a Foli!</p>
+                  ) : (
+                    <div className="flex flex-col gap-1.5">
+                      {recentQuestions.slice(0, 3).map((q) => {
+                        const subjEmoji = q.subject === "science" ? "🔬" :
+                                          q.subject === "math" ? "📐" :
+                                          q.subject === "history" ? "🏰" :
+                                          q.subject === "art" ? "🎨" : "🗣️";
+                        return (
+                          <button
+                            key={q.id}
+                            onClick={() => {
+                              handleSelectRecentQuestion(q);
+                              setIsMobileStatsOpen(false);
+                            }}
+                            className="w-full text-left p-2 rounded-xl bg-slate-900/60 hover:bg-slate-800 border border-slate-800 transition-all text-[10px] font-bold text-slate-200 hover:text-white flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <span className="shrink-0">{subjEmoji}</span>
+                            <span className="truncate">{q.text}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {demoConfig.hasTdah && (
+                  <div className="bg-rose-950/40 border border-rose-900/50 p-2.5 rounded-xl text-center">
+                    <span className="bg-rose-600 border border-rose-400 text-rose-100 text-[9px] font-black px-2.5 py-0.5 rounded-lg inline-block uppercase tracking-wider shadow-sm">
+                      ⚡ APOYO TDAH ACTIVADO
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      handleClearHistory();
+                      setIsMobileStatsOpen(false);
+                    }}
+                    className="flex-1 text-center py-2 bg-slate-900 border border-slate-800 rounded-xl text-[10px] font-black text-slate-300 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Limpiar Historial de Chat
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Subject Switchers */}
-          <div className="flex gap-2.5 overflow-x-auto pb-3.5 border-b border-slate-200 scrollbar-none">
+          <div className="flex gap-2.5 overflow-x-auto pb-3.5 border-b border-slate-200 scrollbar-none shrink-0">
             {SUBJECT_METADATA.map((subject) => (
               <button
                 key={subject.id}
