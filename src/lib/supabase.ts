@@ -58,16 +58,20 @@ CREATE TABLE IF NOT EXISTS focuskid_chat_history (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Habilitar Row Level Security (RLS) opcional o dar permisos públicos si es para demo de portafolio
+-- Habilitar Row Level Security (RLS) para proteger los datos
 ALTER TABLE focuskid_tutors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE focuskid_chat_history ENABLE ROW LEVEL SECURITY;
 
--- Políticas sencillas para que cualquiera pueda usar sus propios datos por email
+-- Políticas de Producción Seguras: Solo el usuario autenticado puede acceder a sus propios datos
 CREATE POLICY "Permitir acceso por email tutores" ON focuskid_tutors
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL TO authenticated
+  USING (auth.jwt() ->> 'email' = email)
+  WITH CHECK (auth.jwt() ->> 'email' = email);
 
 CREATE POLICY "Permitir acceso por email chat" ON focuskid_chat_history
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL TO authenticated
+  USING (auth.jwt() ->> 'email' = tutor_email)
+  WITH CHECK (auth.jwt() ->> 'email' = tutor_email);
 `;
 
 export interface TutorRecord {
